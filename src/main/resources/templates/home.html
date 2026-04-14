@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>NovelVerse - Главная</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">NovelVerse</a>
+            <div class="navbar-nav ms-auto">
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                    <span class="text-white me-3">Привет, <span sec:authentication="name">User</span>!</span>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+                    </form>
+                </div>
+                <div sec:authorize="isAnonymous()">
+                    <a class="btn btn-outline-light btn-sm me-2" th:href="@{/login}">Вход</a>
+                    <a class="btn btn-primary btn-sm" th:href="@{/register}">Регистрация</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="jumbotron p-5 mb-4 bg-light rounded-3 shadow-sm text-center">
+            <h1 class="display-4">Добро пожаловать в NovelVerse!</h1>
+            <p class="lead">Твое любимое место для чтения новелл.</p>
+            <hr class="my-4">
+            
+            <div sec:authorize="isAuthenticated()">
+                <p>Теперь вы авторизованы и можете читать новеллы.</p>
+                <a class="btn btn-primary btn-lg" href="/swagger-ui.html" role="button">Посмотреть API новелл</a>
+            </div>
+            
+            <div sec:authorize="isAnonymous()">
+                <p>Пожалуйста, войдите в систему или зарегистрируйтесь, чтобы получить полный доступ.</p>
+                <a class="btn btn-success btn-lg" th:href="@{/register}" role="button">Присоединиться</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
