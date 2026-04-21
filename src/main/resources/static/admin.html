@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ru" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse - Админ</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Unbounded', 'sans-serif'],
+            body: ['Nunito Sans', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .field {
+      width: 100%;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .field:focus {
+      border-color: rgba(255,62,108,0.45);
+      box-shadow: 0 0 0 3px rgba(255,62,108,0.08);
+      background: rgba(255,255,255,0.07);
+    }
+    .field::placeholder {
+      color: rgba(255,255,255,0.28);
+    }
+    .select-field {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 44px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.55)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+    }
+    .select-field option {
+      background: #1a1a2e;
+      color: #fff;
+    }
+    .color-field {
+      min-height: 52px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body class="min-h-full font-body" style="background:#0d0d14; color:#e0dfe4;">
+  <main class="max-w-4xl mx-auto px-4 py-10">
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-white/30">NovelVerse</p>
+        <h1 class="font-heading text-2xl font-extrabold mt-2">Панель админа</h1>
+      </div>
+      <a href="/index.html" class="px-4 py-2 rounded-xl text-sm font-semibold" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">На главную</a>
+    </div>
+
+    <div id="access-error" class="hidden rounded-2xl p-6 mb-6 text-sm" style="background:rgba(255,62,108,0.08); border:1px solid rgba(255,62,108,0.22); color:#ff8aa5;"></div>
+    <div id="success-msg" class="hidden rounded-2xl p-6 mb-6 text-sm" style="background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.22); color:#7ee7f7;"></div>
+
+    <section id="admin-panel" class="rounded-3xl p-6 md:p-8" style="background:#171725; border:1px solid rgba(255,255,255,0.06);">
+      <h2 class="font-heading text-lg font-bold mb-6">Добавить ранобэ вручную</h2>
+
+      <form id="novel-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Название</span>
+          <input id="title" required class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Оригинальное название</span>
+          <input id="titleOriginal" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Автор</span>
+          <input id="author" required class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Жанр</span>
+          <input id="genre" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Статус</span>
+          <select id="status" class="field select-field">
+            <option>Выпускается</option>
+            <option>Завершено</option>
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Год</span>
+          <input id="year" type="number" min="1900" max="2100" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Рейтинг</span>
+          <input id="rating" type="number" min="0" max="10" step="0.1" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Количество глав</span>
+          <input id="chaptersCount" type="number" min="0" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Эмодзи обложки</span>
+          <input id="coverEmoji" placeholder="📚" class="field" />
+        </label>
+
+        <label class="block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Цвет карточки</span>
+          <input id="coverColor" type="color" value="#8e44ad" class="field color-field" />
+        </label>
+
+        <label class="md:col-span-2 block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Описание</span>
+          <textarea id="description" rows="5" class="field resize-y"></textarea>
+        </label>
+
+        <label class="md:col-span-2 block">
+          <span class="block text-xs font-semibold text-white/50 mb-2">Текст первой главы или превью</span>
+          <textarea id="content" rows="8" class="field resize-y"></textarea>
+        </label>
+
+        <div class="md:col-span-2 flex items-center justify-between gap-4 pt-2">
+          <p class="text-sm text-white/40">Эта форма нужна для ручного добавления ранобэ и хорошо показывает CRUD-часть проекта.</p>
+          <button id="submit-btn" type="submit" class="px-6 py-3 rounded-xl text-sm font-bold" style="background:#ff3e6c; color:#fff;">Сохранить</button>
+        </div>
+      </form>
+
+      <div class="my-8 h-px bg-white/5"></div>
+
+      <div>
+        <h3 class="font-heading text-base font-bold mb-2">Импорт из TXT</h3>
+        <p class="text-sm text-white/40 mb-5">Загрузи текстовый файл, а система сама попробует разбить его на главы по заголовкам вроде Chapter 1, Глава 1 или Том 1.</p>
+
+        <form id="import-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Название</span>
+            <input id="import-title" required class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Автор</span>
+            <input id="import-author" required class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Жанр</span>
+            <input id="import-genre" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Статус</span>
+            <select id="import-status" class="field select-field">
+              <option>Выпускается</option>
+              <option>Завершено</option>
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Год</span>
+            <input id="import-year" type="number" min="1900" max="2100" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Рейтинг</span>
+            <input id="import-rating" type="number" min="0" max="10" step="0.1" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Эмодзи обложки</span>
+            <input id="import-coverEmoji" placeholder="📚" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Цвет карточки</span>
+            <input id="import-coverColor" type="color" value="#8e44ad" class="field color-field" />
+          </label>
+
+          <label class="md:col-span-2 block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Описание</span>
+            <textarea id="import-description" rows="4" class="field resize-y"></textarea>
+          </label>
+
+          <label class="md:col-span-2 block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">TXT-файл</span>
+            <input id="import-file" type="file" accept=".txt,text/plain" class="field" />
+          </label>
+
+          <div class="md:col-span-2 flex items-center justify-between gap-4 pt-2">
+            <p class="text-sm text-white/40">Импорт создаст ранобэ и главы автоматически. После сохранения всем открытым страницам придёт live-уведомление.</p>
+            <button id="import-btn" type="submit" class="px-6 py-3 rounded-xl text-sm font-bold" style="background:#22d3ee; color:#09131a;">Импортировать</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="my-8 h-px bg-white/5"></div>
+
+      <div>
+        <h3 class="font-heading text-base font-bold mb-2">Полуавтоматический импорт из RanobeLIB</h3>
+        <p class="text-sm text-white/40 mb-5">Сначала вставь ссылку и нажми «Заполнить данные». После этого проверь поля, при необходимости поправь их и уже потом импортируй ранобэ.</p>
+
+        <form id="ranobelib-preview-form" class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 mb-5">
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Ссылка RanobeLIB</span>
+            <input id="ranobelib-url" type="url" placeholder="https://ranobelib.me/ru/book/..." class="field" />
+          </label>
+          <div class="flex items-end">
+            <button id="ranobelib-preview-btn" type="submit" class="w-full px-6 py-3 rounded-xl text-sm font-bold" style="background:#7c3aed; color:#fff;">Заполнить данные</button>
+          </div>
+        </form>
+
+        <form id="ranobelib-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Название</span>
+            <input id="ranobelib-title" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Оригинальное название / slug</span>
+            <input id="ranobelib-titleOriginal" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Автор</span>
+            <input id="ranobelib-author" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Жанр</span>
+            <input id="ranobelib-genre" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Статус</span>
+            <select id="ranobelib-status" class="field select-field">
+              <option>Выпускается</option>
+              <option>Завершено</option>
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Рейтинг</span>
+            <input id="ranobelib-rating" type="number" min="0" max="10" step="0.1" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Год</span>
+            <input id="ranobelib-year" type="number" min="1900" max="2100" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Эмодзи обложки</span>
+            <input id="ranobelib-coverEmoji" placeholder="🔗" class="field" />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Цвет карточки</span>
+            <input id="ranobelib-coverColor" type="color" value="#4f46e5" class="field color-field" />
+          </label>
+
+          <label class="md:col-span-2 block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">Описание</span>
+            <textarea id="ranobelib-description" rows="4" class="field resize-y"></textarea>
+          </label>
+
+          <label class="md:col-span-2 block">
+            <span class="block text-xs font-semibold text-white/50 mb-2">TXT с главами (необязательно)</span>
+            <input id="ranobelib-file" type="file" accept=".txt,text/plain" class="field" />
+          </label>
+
+          <div class="flex items-end md:col-span-1">
+            <button id="ranobelib-btn" type="submit" class="w-full px-6 py-3 rounded-xl text-sm font-bold" style="background:#7c3aed; color:#fff;">Импорт по ссылке</button>
+          </div>
+          <div class="flex items-end md:col-span-1 text-sm text-white/40">Сначала нажми «Заполнить данные», потом проверь форму и сохрани.</div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const token = localStorage.getItem('accessToken');
+
+    const accessError = document.getElementById('access-error');
+    const adminPanel = document.getElementById('admin-panel');
+    const success = document.getElementById('success-msg');
+
+    function showError(message) {
+      success.classList.add('hidden');
+      accessError.textContent = message;
+      accessError.classList.remove('hidden');
+    }
+
+    function showSuccess(message) {
+      accessError.classList.add('hidden');
+      success.textContent = message;
+      success.classList.remove('hidden');
+    }
+
+    if (!token || !user) {
+      showError('Сначала войди в аккаунт.');
+      adminPanel.classList.add('hidden');
+    } else if (user.role !== 'ADMIN') {
+      showError('Доступ только для админа.');
+      adminPanel.classList.add('hidden');
+    }
+
+    if (window.StompJs && token && user?.role === 'ADMIN') {
+      const wsClient = new StompJs.Client({
+        webSocketFactory: () => new SockJS('/ws'),
+        reconnectDelay: 5000
+      });
+      wsClient.activate();
+    }
+
+    document.getElementById('novel-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const payload = {
+        title: document.getElementById('title').value.trim(),
+        titleOriginal: document.getElementById('titleOriginal').value.trim() || null,
+        author: document.getElementById('author').value.trim(),
+        genre: document.getElementById('genre').value.trim() || null,
+        status: document.getElementById('status').value,
+        year: document.getElementById('year').value ? Number(document.getElementById('year').value) : null,
+        rating: document.getElementById('rating').value ? Number(document.getElementById('rating').value) : null,
+        chaptersCount: document.getElementById('chaptersCount').value ? Number(document.getElementById('chaptersCount').value) : null,
+        coverEmoji: document.getElementById('coverEmoji').value.trim() || '📚',
+        coverColor: document.getElementById('coverColor').value,
+        description: document.getElementById('description').value.trim() || null,
+        content: document.getElementById('content').value.trim() || null,
+        views: 0,
+        bookmarksCount: 0
+      };
+
+      const button = document.getElementById('submit-btn');
+      button.disabled = true;
+      button.textContent = 'Сохраняем...';
+      success.classList.add('hidden');
+      accessError.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/novels', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const message = response.status === 403
+            ? 'Создавать ранобэ может только админ.'
+            : 'Не удалось сохранить ранобэ.';
+          throw new Error(message);
+        }
+
+        const saved = await response.json();
+        showSuccess(`Ранобэ сохранено. ID: ${saved.id}`);
+        event.target.reset();
+        document.getElementById('coverColor').value = '#8e44ad';
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Сохранить';
+      }
+    });
+
+    document.getElementById('import-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const file = document.getElementById('import-file').files[0];
+      if (!file) {
+        showError('Выбери TXT-файл для импорта.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', document.getElementById('import-title').value.trim());
+      formData.append('author', document.getElementById('import-author').value.trim());
+      formData.append('genre', document.getElementById('import-genre').value.trim());
+      formData.append('status', document.getElementById('import-status').value);
+      formData.append('year', document.getElementById('import-year').value);
+      formData.append('rating', document.getElementById('import-rating').value);
+      formData.append('coverEmoji', document.getElementById('import-coverEmoji').value.trim() || '📚');
+      formData.append('coverColor', document.getElementById('import-coverColor').value);
+      formData.append('description', document.getElementById('import-description').value.trim());
+      formData.append('file', file);
+
+      const button = document.getElementById('import-btn');
+      button.disabled = true;
+      button.textContent = 'Импортируем...';
+      success.classList.add('hidden');
+      accessError.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/novels/import-text', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data) {
+          throw new Error(data?.message || 'Не удалось импортировать TXT');
+        }
+
+        showSuccess(`TXT импортирован. Создано ранобэ ID: ${data.id}, глав: ${data.chaptersCount ?? 0}`);
+        event.target.reset();
+        document.getElementById('import-coverColor').value = '#8e44ad';
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Импортировать';
+      }
+    });
+
+    document.getElementById('ranobelib-preview-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const url = document.getElementById('ranobelib-url').value.trim();
+      if (!url) {
+        showError('Вставь ссылку RanobeLIB.');
+        return;
+      }
+
+      const button = document.getElementById('ranobelib-preview-btn');
+      button.disabled = true;
+      button.textContent = 'Получаем данные...';
+      success.classList.add('hidden');
+      accessError.classList.add('hidden');
+
+      try {
+        const response = await fetch(`/api/novels/preview-ranobelib?url=${encodeURIComponent(url)}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data) {
+          throw new Error(data?.message || 'Не удалось получить данные с RanobeLIB');
+        }
+
+        document.getElementById('ranobelib-title').value = data.title || '';
+        document.getElementById('ranobelib-titleOriginal').value = data.titleOriginal || '';
+        document.getElementById('ranobelib-author').value = data.author || '';
+        document.getElementById('ranobelib-genre').value = data.genre || '';
+        document.getElementById('ranobelib-status').value = data.status || 'Выпускается';
+        document.getElementById('ranobelib-rating').value = typeof data.rating === 'number' ? data.rating : '';
+        document.getElementById('ranobelib-year').value = Number.isInteger(data.year) ? data.year : '';
+        document.getElementById('ranobelib-coverEmoji').value = data.coverEmoji || '🔗';
+        document.getElementById('ranobelib-coverColor').value = data.coverColor || '#4f46e5';
+        document.getElementById('ranobelib-description').value = data.description || '';
+        showSuccess('Данные с RanobeLIB подставлены в форму. Проверь их и нажми импорт.');
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Заполнить данные';
+      }
+    });
+
+    document.getElementById('ranobelib-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const url = document.getElementById('ranobelib-url').value.trim();
+      if (!url) {
+        showError('Сначала вставь ссылку RanobeLIB.');
+        return;
+      }
+
+      const button = document.getElementById('ranobelib-btn');
+      button.disabled = true;
+      button.textContent = 'Импортируем ссылку...';
+      success.classList.add('hidden');
+      accessError.classList.add('hidden');
+
+      try {
+        const formData = new FormData();
+        formData.append('url', url);
+        formData.append('title', document.getElementById('ranobelib-title').value.trim());
+        formData.append('titleOriginal', document.getElementById('ranobelib-titleOriginal').value.trim());
+        formData.append('author', document.getElementById('ranobelib-author').value.trim());
+        formData.append('genre', document.getElementById('ranobelib-genre').value.trim());
+        formData.append('status', document.getElementById('ranobelib-status').value);
+        formData.append('rating', document.getElementById('ranobelib-rating').value);
+        formData.append('year', document.getElementById('ranobelib-year').value);
+        formData.append('coverEmoji', document.getElementById('ranobelib-coverEmoji').value.trim());
+        formData.append('coverColor', document.getElementById('ranobelib-coverColor').value);
+        formData.append('description', document.getElementById('ranobelib-description').value.trim());
+        const file = document.getElementById('ranobelib-file').files[0];
+        if (file) {
+          formData.append('file', file);
+        }
+
+        const response = await fetch('/api/novels/import-ranobelib', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data) {
+          throw new Error(data?.message || 'Не удалось импортировать RanobeLIB ссылку');
+        }
+
+        showSuccess(`RanobeLIB импорт выполнен. Создано ранобэ ID: ${data.id}${file ? `, глав: ${data.chaptersCount ?? 0}` : ''}`);
+        event.target.reset();
+        document.getElementById('ranobelib-url').value = '';
+        document.getElementById('ranobelib-coverColor').value = '#4f46e5';
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Импорт по ссылке';
+      }
+    });
+  </script>
+</body>
+</html>

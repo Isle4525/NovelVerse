@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ru" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&amp;family=Nunito+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        heading: ['Unbounded', 'sans-serif'],
+        body: ['Nunito Sans', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+  <style>
+  html, body { height: 100%; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .manga-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  .manga-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 40px rgba(255,62,108,0.25); }
+
+  .tag-pill { transition: background 0.2s ease; }
+  .tag-pill:hover { background: rgba(255,62,108,0.25); }
+
+  .nav-link { position: relative; }
+  .nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:2px; background:#ff3e6c; transition: width 0.3s ease; }
+  .nav-link:hover::after { width:100%; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .fade-up { animation: fadeUp 0.5s ease forwards; opacity:0; }
+  .fade-up:nth-child(1) { animation-delay: 0.05s; }
+  .fade-up:nth-child(2) { animation-delay: 0.1s; }
+  .fade-up:nth-child(3) { animation-delay: 0.15s; }
+  .fade-up:nth-child(4) { animation-delay: 0.2s; }
+  .fade-up:nth-child(5) { animation-delay: 0.25s; }
+  .fade-up:nth-child(6) { animation-delay: 0.3s; }
+  .fade-up:nth-child(7) { animation-delay: 0.35s; }
+  .fade-up:nth-child(8) { animation-delay: 0.4s; }
+
+  .hero-gradient {
+    background: linear-gradient(135deg, #0d0d14 0%, #1a0a20 40%, #0d0d14 70%, #140a1a 100%);
+  }
+
+  .search-glow:focus-within { box-shadow: 0 0 20px rgba(255,62,108,0.3); }
+
+  .rating-star { filter: drop-shadow(0 0 3px rgba(255,200,50,0.5)); }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0d0d14; }
+  ::-webkit-scrollbar-thumb { background: #2a2a3d; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #ff3e6c; }
+
+  .chapter-row { transition: background 0.15s ease; }
+  .chapter-row:hover { background: rgba(255,62,108,0.08); }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  
+ </head>
+ <body class="h-full font-body" style="background:#0d0d14; color:#e0dfe4;">
+  <div id="app" class="w-full h-full overflow-auto"><!-- NAV -->
+   <nav class="sticky top-0 z-50 w-full border-b border-white/5" style="background:rgba(13,13,20,0.92); backdrop-filter:blur(16px);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+     <div class="flex items-center gap-6"><a href="#" class="font-heading font-extrabold text-lg tracking-tight" style="color:#ff3e6c;" id="nav-title">NovelVerse</a>
+      <div class="hidden md:flex items-center gap-5 text-sm font-semibold"><a href="#catalog" class="nav-link text-white/70 hover:text-white" onclick="showSection('catalog')">Каталог</a> <a href="#popular" class="nav-link text-white/70 hover:text-white" onclick="showSection('catalog')">Популярное</a> <a href="#new" class="nav-link text-white/70 hover:text-white" onclick="showSection('catalog')">Новинки</a> <a href="#bookmarks" class="nav-link text-white/70 hover:text-white" onclick="showSection('bookmarks')">Закладки</a>
+      </div>
+     </div>
+     <div class="flex items-center gap-3">
+       <button onclick="toggleSearch()" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition"> <i data-lucide="search" style="width:18px;height:18px;"></i> </button>
+       <button onclick="showSection('bookmarks')" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition relative"> <i data-lucide="bookmark" style="width:18px;height:18px;"></i> <span id="bookmark-count" class="absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center" style="background:#ff3e6c; color:#fff; display:none;">0</span> </button>
+       <div id="nav-auth" class="hidden md:flex items-center gap-2">
+         <a href="/login.html" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition" style="color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.1);" onmouseenter="this.style.borderColor='rgba(255,62,108,0.4)';this.style.color='#fff'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.7)'">Войти</a>
+         <a href="/register.html" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition" style="background:#ff3e6c; color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'"><i data-lucide="user-plus" style="width:14px;height:14px;"></i> Регистрация</a>
+       </div>
+       <div id="nav-user" style="display:none;" class="md:flex items-center gap-2">
+         <span id="nav-username" class="text-sm font-semibold" style="color:rgba(255,255,255,0.8);"></span>
+         <button onclick="logout()" class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition" style="color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.1);" onmouseenter="this.style.color='#ff3e6c';this.style.borderColor='rgba(255,62,108,0.3)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)';this.style.borderColor='rgba(255,255,255,0.1)'"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Выйти</button>
+       </div>
+       <button class="md:hidden p-2 rounded-lg hover:bg-white/5 text-white/60" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"> <i data-lucide="menu" style="width:20px;height:20px;"></i> </button>
+     </div>
+    </div><!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-white/5 px-4 pb-3 pt-2 space-y-1"><a href="#" onclick="showSection('catalog')" class="block py-2 text-sm text-white/70 hover:text-white">Каталог</a> <a href="#" onclick="showSection('catalog')" class="block py-2 text-sm text-white/70 hover:text-white">Популярное</a> <a href="#" onclick="showSection('bookmarks')" class="block py-2 text-sm text-white/70 hover:text-white">Закладки</a>
+    </div>
+   </nav><!-- AUTH MODAL -->
+   <div id="auth-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);" onclick="if(event.target===this)closeAuthModal()">
+    <div class="w-full max-w-md mx-4 rounded-2xl overflow-hidden" style="background:#1a1a2e; border:1px solid rgba(255,62,108,0.2);"><!-- Tabs -->
+     <div class="flex border-b border-white/5"><button onclick="switchAuthTab('login')" id="login-tab" class="flex-1 py-4 font-semibold text-sm transition" style="background:rgba(255,62,108,0.1); color:#ff3e6c; border-bottom:2px solid #ff3e6c;">Вход</button> <button onclick="switchAuthTab('register')" id="register-tab" class="flex-1 py-4 font-semibold text-sm transition" style="color:rgba(255,255,255,0.5);">Регистрация</button>
+     </div><!-- Content -->
+     <div class="p-6"><!-- Login Form -->
+      <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Email</label> <input type="email" placeholder="your@email.com" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div>
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Пароль</label> <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div><button type="submit" class="w-full py-3 rounded-lg font-bold text-sm transition" style="background:#ff3e6c; color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">Войти</button>
+       <p class="text-xs text-center text-white/40">Забыли пароль? <button type="button" class="text-white/60 hover:text-white font-semibold transition">Восстановить</button></p>
+      </form><!-- Register Form -->
+      <form id="register-form" class="space-y-4 hidden" onsubmit="handleRegister(event)">
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Имя пользователя</label> <input type="text" placeholder="YourNickname" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div>
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Email</label> <input type="email" placeholder="your@email.com" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div>
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Пароль</label> <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div>
+       <div><label class="block text-xs font-semibold text-white/60 mb-2">Подтверждение пароля</label> <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-lg text-sm outline-none transition" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;" onfocus="this.style.borderColor='rgba(255,62,108,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+       </div><label class="flex items-center gap-2 text-xs text-white/60"> <input type="checkbox" class="rounded" style="accent-color:#ff3e6c;"> <span>Я согласен с <button type="button" class="text-white/80 hover:text-white font-semibold">условиями</button></span> </label> <button type="submit" class="w-full py-3 rounded-lg font-bold text-sm transition" style="background:#ff3e6c; color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">Создать аккаунт</button>
+      </form><!-- Success Message -->
+      <div id="auth-success" class="hidden text-center py-6"><i data-lucide="check-circle" style="width:48px;height:48px;color:#22d3ee;margin:0 auto;display:block;"></i>
+       <p class="mt-3 text-sm font-semibold text-white">Добро пожаловать! 🎉</p>
+       <p class="mt-1 text-xs text-white/40">Вы успешно вошли в систему</p><button onclick="closeAuthModal()" class="mt-4 px-6 py-2 rounded-lg font-semibold text-sm transition" style="background:rgba(255,62,108,0.2); color:#ff3e6c;" onmouseenter="this.style.background='rgba(255,62,108,0.3)'" onmouseleave="this.style.background='rgba(255,62,108,0.2)'">Продолжить</button>
+      </div>
+     </div>
+    </div>
+   </div><!-- SEARCH OVERLAY -->
+   <div id="search-overlay" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);" onclick="if(event.target===this)toggleSearch()">
+    <div class="max-w-xl mx-auto mt-24 px-4">
+     <div class="search-glow rounded-2xl overflow-hidden" style="background:#1a1a2e; border:1px solid rgba(255,62,108,0.2);">
+      <div class="flex items-center px-4 gap-3"><i data-lucide="search" style="width:20px;height:20px;color:#ff3e6c;"></i> <input id="search-input" type="text" placeholder="Поиск манги..." class="w-full py-4 bg-transparent text-white outline-none text-base" oninput="filterManga(this.value)"> <button onclick="toggleSearch()" class="text-white/40 hover:text-white"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+      </div>
+      <div id="search-results" class="max-h-72 overflow-auto"></div>
+     </div>
+    </div>
+   </div><!-- MAIN CONTENT -->
+   <main><!-- HERO -->
+    <section id="hero-section" class="hero-gradient relative overflow-hidden">
+     <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 50%, #ff3e6c 0%, transparent 50%), radial-gradient(circle at 80% 20%, #7c3aed 0%, transparent 40%);"></div>
+     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+      <div class="max-w-2xl">
+       <h1 id="hero-heading" class="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl leading-tight mb-4" style="color:#fff;">Открой мир<br><span style="color:#ff3e6c;">ранобэ</span></h1>
+       <p id="hero-subtext" class="text-base md:text-lg mb-8" style="color:rgba(255,255,255,0.6);">Тысячи произведений на русском языке. Читай бесплатно, создавай списки и делись с друзьями.</p>
+       <div class="flex flex-wrap gap-3"><button onclick="showSection('catalog')" class="px-6 py-3 rounded-xl font-bold text-sm transition" style="background:#ff3e6c; color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'"> Начать читать </button> <button onclick="toggleSearch()" class="px-6 py-3 rounded-xl font-bold text-sm transition border" style="border-color:rgba(255,255,255,0.15); color:#fff; background:rgba(255,255,255,0.05);" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='rgba(255,255,255,0.05)'"> <span class="flex items-center gap-2"><i data-lucide="search" style="width:15px;height:15px;"></i> Найти ранобэ</span> </button>
+       </div>
+      </div><!-- Quick stats -->
+      <div class="flex flex-wrap gap-6 mt-12">
+       <div class="flex items-center gap-2 text-sm">
+        <span class="font-heading font-bold text-xl" style="color:#ff3e6c;">8K+</span><span class="text-white/50">произведений</span>
+       </div>
+       <div class="flex items-center gap-2 text-sm">
+        <span class="font-heading font-bold text-xl" style="color:#7c3aed;">120K+</span><span class="text-white/50">томов</span>
+       </div>
+       <div class="flex items-center gap-2 text-sm">
+        <span class="font-heading font-bold text-xl" style="color:#22d3ee;">1.5M+</span><span class="text-white/50">читателей</span>
+       </div>
+      </div>
+     </div>
+    </section><!-- CATALOG SECTION -->
+    <section id="catalog-section" class="max-w-7xl mx-auto px-4 sm:px-6 py-10"><!-- Filters -->
+     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <h2 class="font-heading font-bold text-xl" style="color:#fff;">Каталог</h2>
+      <div class="flex flex-wrap gap-2"><button onclick="filterByGenre('all')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,62,108,0.2); color:#ff3e6c;">Все</button> <button onclick="filterByGenre('action')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">Экшен</button> <button onclick="filterByGenre('romance')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">Романтика</button> <button onclick="filterByGenre('fantasy')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">Фэнтези</button> <button onclick="filterByGenre('horror')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">Киберпанк</button> <button onclick="filterByGenre('comedy')" class="genre-btn tag-pill px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">Комедия</button>
+      </div>
+     </div><!-- Sort -->
+     <div class="flex items-center gap-3 mb-6 text-xs"><span class="text-white/40">Сортировка:</span> <button onclick="sortManga('rating')" class="sort-btn text-white/60 hover:text-white transition font-semibold" style="color:#ff3e6c;">По рейтингу</button> <span class="text-white/10">|</span> <button onclick="sortManga('chapters')" class="sort-btn text-white/60 hover:text-white transition font-semibold">По главам</button> <span class="text-white/10">|</span> <button onclick="sortManga('name')" class="sort-btn text-white/60 hover:text-white transition font-semibold">По имени</button>
+     </div><!-- Manga Grid -->
+     <div id="manga-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-5"></div>
+    </section><!-- BOOKMARKS SECTION -->
+    <section id="bookmarks-section" class="max-w-7xl mx-auto px-4 sm:px-6 py-10 hidden">
+     <h2 class="font-heading font-bold text-xl mb-6" style="color:#fff;">Мои закладки</h2>
+     <div id="bookmarks-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-5"></div>
+     <div id="bookmarks-empty" class="text-center py-20 hidden"><i data-lucide="bookmark" style="width:48px;height:48px;color:rgba(255,255,255,0.15);margin:0 auto;display:block;"></i>
+      <p class="mt-4 text-white/30 text-sm">Пока ничего нет. Добавь мангу в закладки!</p>
+     </div>
+    </section>
+   </main><!-- FOOTER -->
+   <footer class="border-t border-white/5 mt-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4"><span class="font-heading font-bold text-sm" style="color:#ff3e6c;" id="footer-title">NovelVerse</span>
+     <p class="text-xs text-white/30">© 2025 NovelVerse. Все права защищены. Демо-проект.</p>
+    </div>
+   </footer>
+  </div>
+  <script>
+// --- DATA ---
+const mangaData = [
+  { id:1, title:"Не моя работа, если я красавчик", titleEn:"If It's for My Daughter, I'd Even Defeat a Demon Lord", genre:"romance", rating:9.1, chapters:8, status:"Завершено", year:2015, desc:"Ветеран войны Дейл находит маленькую демонёнка Лативу в лесу. Несмотря на предупреждения, он решает о ней позаботиться и дать ей нормальную жизнь.", color:"#e74c3c", emoji:"👨‍👧" },
+  { id:2, title:"Рилак Кровесос", titleEn:"Re:Zero", genre:"fantasy", rating:9.4, chapters:9, chapters:32, status:"Выпускается", year:2014, desc:"Обычный парень Субару получает способность возвращаться в прошлое при смерти. Он должен спасти мир используя эту силу.", color:"#8e44ad", emoji:"⏰" },
+  { id:3, title:"Начиная жизнь заново в другом мире", titleEn:"That Time I Got Reincarnated as a Slime", genre:"action", rating:9.3, chapters:18, status:"Выпускается", year:2013, desc:"Сатору Миками перерождается в капле слизи. Теперь он должен выжить в опасном мире монстров.", color:"#3498db", emoji:"🟦" },
+  { id:4, title:"Эльмира: Путь Героя", titleEn:"Overlord", genre:"fantasy", rating:9.2, chapters:17, status:"Выпускается", year:2012, desc:"Абсолютно сильный маг перерождается в новом мире и создаёт свою империю демонов.", color:"#2c3e50", emoji:"👑" },
+  { id:5, title:"Дневник будущего", titleEn:"The Misfit of Demon King Academy", genre:"fantasy", rating:8.8, chapters:7, status:"Завершено", year:2008, desc:"Демон-король перерождается через 2000 лет в академии. Но его новые способности намного слабее, чем раньше.", color:"#e67e22", emoji:"🏰" },
+  { id:6, title:"Рыцарь скорби", titleEn:"Sword Art Online", genre:"action", rating:9.0, chapters:26, status:"Выпускается", year:2009, desc:"Игроки застревают в виртуальной игре и должны выбраться, победив босса на 100 этаже.", color:"#2ecc71", emoji:"⚔️" },
+  { id:7, title:"Паранойя Богов", titleEn:"DanMachi", genre:"action", rating:8.7, chapters:19, status:"Выпускается", year:2013, desc:"Молодой авантюрист в подземелье мегаполиса встречает богиню и становится первым членом её семьи.", color:"#f39c12", emoji:"🏺" },
+  { id:8, title:"Школа звёзд", titleEn:"My Teen Romantic Comedy SNAFU", genre:"comedy", rating:8.9, chapters:14, status:"Завершено", year:2011, desc:"Одиночка Хикигая присоединяется к школьному клубу по решению проблем одноклассников.", color:"#1abc9c", emoji:"📚" }
+];
+
+let bookmarks = [];
+let currentGenre = 'all';
+let currentSort = 'rating';
+let currentSection = 'catalog';
+
+// --- CONFIG ---
+const defaultConfig = {
+  site_title: 'NovelVerse',
+  hero_heading: 'Открой мир ранобэ',
+  hero_subtext: 'Тысячи тайтлов на русском языке. Читай бесплатно, создавай списки и делись с друзьями.',
+  background_color: '#0d0d14',
+  surface_color: '#1a1a2e',
+  text_color: '#e0dfe4',
+  primary_action: '#ff3e6c',
+  secondary_action: '#7c3aed',
+  font_family: 'Unbounded',
+  font_size: 14
+};
+
+function applyConfig(config) {
+  const c = { ...defaultConfig, ...config };
+  const font = c.font_family || defaultConfig.font_family;
+  const baseSize = c.font_size || defaultConfig.font_size;
+
+  // Titles
+  const navT = document.getElementById('nav-title');
+  if (navT) { navT.textContent = c.site_title; navT.style.color = c.primary_action; navT.style.fontFamily = `${font}, sans-serif`; }
+  const footT = document.getElementById('footer-title');
+  if (footT) { footT.textContent = c.site_title; footT.style.color = c.primary_action; footT.style.fontFamily = `${font}, sans-serif`; }
+
+  // Hero
+  const hh = document.getElementById('hero-heading');
+  if (hh) {
+    hh.innerHTML = c.hero_heading.replace(/(ранобэ|manga)/i, `<br><span style="color:${c.primary_action}">$1</span>`);
+    if (!/(манги|manga)/i.test(c.hero_heading)) hh.textContent = c.hero_heading;
+    hh.style.fontFamily = `${font}, sans-serif`;
+    hh.style.fontSize = `${baseSize * 2.5}px`;
+  }
+  const hs = document.getElementById('hero-subtext');
+  if (hs) { hs.textContent = c.hero_subtext; hs.style.fontSize = `${baseSize}px`; }
+
+  // Background
+  document.body.style.background = c.background_color;
+  document.body.style.color = c.text_color;
+  document.body.style.fontSize = `${baseSize}px`;
+
+  // Re-render cards to pick up color changes
+  renderGrid();
+}
+
+// --- RENDER ---
+function getMangaList() {
+  let list = [...mangaData];
+  if (currentGenre !== 'all') list = list.filter(m => m.genre === currentGenre);
+  if (currentSort === 'rating') list.sort((a,b) => b.rating - a.rating);
+  else if (currentSort === 'chapters') list.sort((a,b) => b.chapters - a.chapters);
+  else if (currentSort === 'name') list.sort((a,b) => a.title.localeCompare(b.title));
+  return list;
+}
+
+function createCard(m, idx) {
+  const isBookmarked = bookmarks.includes(m.id);
+  const cfg = window.elementSdk?.config || defaultConfig;
+  const accent = cfg.primary_action || defaultConfig.primary_action;
+  const surface = cfg.surface_color || defaultConfig.surface_color;
+
+  const div = document.createElement('div');
+  div.className = 'manga-card rounded-2xl overflow-hidden cursor-pointer fade-up';
+  div.style.background = surface;
+  div.style.border = '1px solid rgba(255,255,255,0.05)';
+  div.style.animationDelay = `${idx * 0.05}s`;
+
+  const stars = '★'.repeat(Math.round(m.rating/2)) + '☆'.repeat(5 - Math.round(m.rating/2));
+
+  div.innerHTML = `
+    <div class="relative" style="aspect-ratio:3/4; background:linear-gradient(135deg, ${m.color}33, ${m.color}11);">
+      <div class="absolute inset-0 flex items-center justify-center text-6xl">${m.emoji}</div>
+      <div class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold" style="background:${accent}; color:#fff;">${m.rating}</div>
+      <button onclick="event.stopPropagation(); toggleBookmark(${m.id})" class="absolute top-2 right-2 p-1.5 rounded-lg transition" style="background:rgba(0,0,0,0.5);">
+        <i data-lucide="bookmark" style="width:14px;height:14px;color:${isBookmarked ? accent : 'rgba(255,255,255,0.5)'};${isBookmarked ? 'fill:'+accent : ''}"></i>
+      </button>
+      <div class="absolute bottom-0 left-0 right-0 p-3" style="background:linear-gradient(transparent, rgba(0,0,0,0.8));">
+        <div class="text-[10px] font-semibold" style="color:${accent};">${m.genre === 'action' ? 'Экшен' : m.genre === 'romance' ? 'Романтика' : m.genre === 'fantasy' ? 'Фэнтези' : m.genre === 'horror' ? 'Киберпанк' : 'Комедия'}</div>
+      </div>
+    </div>
+    <div class="p-3">
+      <h3 class="font-heading font-bold text-sm leading-tight mb-1 truncate" style="color:#fff;">${m.title}</h3>
+      <p class="text-[10px] text-white/40 mb-1.5">${m.titleEn} · ${m.year}</p>
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] rating-star" style="color:#ffd700;">${stars}</span>
+        <span class="text-[10px] text-white/30">${m.chapters} том.</span>
+      </div>
+    </div>
+  `;
+  div.addEventListener('click', () => location.href='/novel.html?id='+m.id);
+  return div;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('manga-grid');
+  const list = getMangaList();
+  grid.innerHTML = '';
+  list.forEach((m, i) => grid.appendChild(createCard(m, i)));
+  lucide.createIcons();
+}
+
+function renderBookmarks() {
+  const grid = document.getElementById('bookmarks-grid');
+  const empty = document.getElementById('bookmarks-empty');
+  const bmData = mangaData.filter(m => bookmarks.includes(m.id));
+  grid.innerHTML = '';
+  if (bmData.length === 0) {
+    empty.classList.remove('hidden');
+    grid.classList.add('hidden');
+  } else {
+    empty.classList.add('hidden');
+    grid.classList.remove('hidden');
+    bmData.forEach((m, i) => grid.appendChild(createCard(m, i)));
+  }
+  // Update count badge
+  const badge = document.getElementById('bookmark-count');
+  if (bookmarks.length > 0) { badge.style.display = 'flex'; badge.textContent = bookmarks.length; }
+  else { badge.style.display = 'none'; }
+  lucide.createIcons();
+}
+
+function showDetail(id) {
+  const m = mangaData.find(x => x.id === id);
+  if (!m) return;
+  const cfg = window.elementSdk?.config || defaultConfig;
+  const accent = cfg.primary_action || defaultConfig.primary_action;
+  const surface = cfg.surface_color || defaultConfig.surface_color;
+  const isBookmarked = bookmarks.includes(m.id);
+
+  const genreLabel = m.genre === 'action' ? 'Экшен' : m.genre === 'romance' ? 'Романтика' : m.genre === 'fantasy' ? 'Фэнтези' : m.genre === 'horror' ? 'Киберпанк' : 'Комедия';
+  const stars = '★'.repeat(Math.round(m.rating/2)) + '☆'.repeat(5 - Math.round(m.rating/2));
+
+  let chaptersHTML = '';
+  const numShow = Math.min(m.chapters, 8);
+  for (let i = m.chapters; i > m.chapters - numShow; i--) {
+    chaptersHTML += `<div class="chapter-row flex items-center justify-between px-4 py-3 rounded-lg" style="border:1px solid rgba(255,255,255,0.04);">
+      <span class="text-sm font-semibold">Том ${i}</span>
+      <span class="text-xs text-white/30">${Math.floor(Math.random()*28)+1} дн. назад</span>
+    </div>`;
+  }
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="flex flex-col md:flex-row gap-8">
+      <div class="shrink-0 w-full md:w-64">
+        <div class="rounded-2xl overflow-hidden" style="aspect-ratio:3/4; background:linear-gradient(135deg, ${m.color}44, ${m.color}11);">
+          <div class="w-full h-full flex items-center justify-center text-8xl">${m.emoji}</div>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-4 mb-3">
+          <div>
+            <h1 class="font-heading font-extrabold text-2xl md:text-3xl mb-1" style="color:#fff;">${m.title}</h1>
+            <p class="text-sm text-white/40">${m.titleEn}</p>
+          </div>
+          <button onclick="toggleBookmark(${m.id}); showDetail(${m.id});" class="shrink-0 p-2 rounded-xl transition" style="background:${isBookmarked ? accent+'22' : 'rgba(255,255,255,0.05)'}; border:1px solid ${isBookmarked ? accent+'44' : 'rgba(255,255,255,0.1)'};">
+            <i data-lucide="bookmark" style="width:20px;height:20px;color:${isBookmarked ? accent : 'rgba(255,255,255,0.4)'};${isBookmarked ? 'fill:'+accent : ''}"></i>
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="px-3 py-1 rounded-lg text-xs font-semibold" style="background:${accent}22; color:${accent};">${genreLabel}</span>
+          <span class="px-3 py-1 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">${m.status}</span>
+          <span class="px-3 py-1 rounded-lg text-xs font-semibold" style="background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);">${m.year}</span>
+        </div>
+        <div class="flex items-center gap-3 mb-5">
+          <span class="rating-star text-base" style="color:#ffd700;">${stars}</span>
+          <span class="text-lg font-heading font-bold" style="color:#fff;">${m.rating}</span>
+          <span class="text-sm text-white/30">${m.chapters} глав</span>
+        </div>
+        <p class="text-sm leading-relaxed mb-6" style="color:rgba(255,255,255,0.6);">${m.desc}</p>
+        <button class="px-8 py-3 rounded-xl font-bold text-sm transition" style="background:${accent}; color:#fff;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">
+          Читать первую главу
+        </button>
+      </div>
+    </div>
+    <div class="mt-10">
+      <h3 class="font-heading font-bold text-lg mb-4" style="color:#fff;">Последние тома</h3>
+      <div class="space-y-2">${chaptersHTML}</div>
+      ${m.chapters > 8 ? `<p class="text-center text-xs text-white/30 mt-4">...и ещё ${m.chapters - 8} томов</p>` : ''}
+    </div>
+  `;
+  showSection('detail');
+  lucide.createIcons();
+}
+
+// --- ACTIONS ---
+function openAuthModal() {
+  document.getElementById('auth-modal').classList.remove('hidden');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+  document.getElementById('auth-success').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+  document.getElementById('register-form').classList.add('hidden');
+  switchAuthTab('login');
+}
+
+function switchAuthTab(tab) {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const loginTab = document.getElementById('login-tab');
+  const registerTab = document.getElementById('register-tab');
+
+  if (tab === 'login') {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+    loginTab.style.background = 'rgba(255,62,108,0.1)';
+    loginTab.style.color = '#ff3e6c';
+    loginTab.style.borderBottom = '2px solid #ff3e6c';
+    registerTab.style.background = 'transparent';
+    registerTab.style.color = 'rgba(255,255,255,0.5)';
+    registerTab.style.borderBottom = 'none';
+  } else {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+    loginTab.style.background = 'transparent';
+    loginTab.style.color = 'rgba(255,255,255,0.5)';
+    loginTab.style.borderBottom = 'none';
+    registerTab.style.background = 'rgba(255,62,108,0.1)';
+    registerTab.style.color = '#ff3e6c';
+    registerTab.style.borderBottom = '2px solid #ff3e6c';
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const form = document.getElementById('login-form');
+  const inputs = form.querySelectorAll('input');
+  const email = inputs[0].value;
+  const password = inputs[1].value;
+
+  if (!email || !password) { alert('Пожалуйста, заполните все поля'); return; }
+
+  const btn = form.querySelector('button[type="submit"]');
+  btn.textContent = 'Входим...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      closeAuthModal();
+      updateNavUser(data.user);
+    } else {
+      alert(data.message || 'Неверный email или пароль');
+    }
+  } catch (err) {
+    alert('Сервер недоступен. Убедись что бэкенд запущен.');
+  } finally {
+    btn.textContent = 'Войти'; btn.disabled = false;
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const form = document.getElementById('register-form');
+  const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+  const checkbox = form.querySelector('input[type="checkbox"]');
+  const username = inputs[0].value, email = inputs[1].value;
+  const password = inputs[2].value, confirmPassword = inputs[3].value;
+
+  if (!username || !email || !password || !confirmPassword) { alert('Пожалуйста, заполните все поля'); return; }
+  if (password !== confirmPassword) { alert('Пароли не совпадают'); return; }
+  if (!checkbox.checked) { alert('Примите условия использования'); return; }
+
+  const btn = form.querySelector('button[type="submit"]');
+  btn.textContent = 'Создаём...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('http://localhost:8080/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, confirmPassword })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      form.classList.add('hidden');
+      const s = document.getElementById('auth-success');
+      s.classList.remove('hidden');
+      s.querySelector('p.mt-3').textContent = 'Аккаунт создан! 🎉';
+      s.querySelector('p.mt-1').textContent = 'Проверь email — мы отправили ссылку для подтверждения.';
+    } else {
+      const msg = typeof data.message === 'object' ? Object.values(data.message).join('\n') : data.message;
+      alert(msg || 'Ошибка регистрации');
+    }
+  } catch (err) {
+    alert('Сервер недоступен. Убедись что бэкенд запущен.');
+  } finally {
+    btn.textContent = 'Создать аккаунт'; btn.disabled = false;
+  }
+}
+
+function showSection(s) {
+  currentSection = s;
+  document.getElementById('hero-section').classList.toggle('hidden', s === 'bookmarks');
+  document.getElementById('catalog-section').classList.toggle('hidden', s !== 'catalog');
+  document.getElementById('bookmarks-section').classList.toggle('hidden', s !== 'bookmarks');
+  
+  if (s === 'bookmarks') renderBookmarks();
+  if (s === 'catalog') renderGrid();
+  document.getElementById('mobile-menu').classList.add('hidden');
+  window.scrollTo(0, 0);
+}
+
+function toggleBookmark(id) {
+  const idx = bookmarks.indexOf(id);
+  if (idx >= 0) bookmarks.splice(idx, 1);
+  else bookmarks.push(id);
+  renderBookmarks();
+  if (currentSection === 'catalog') renderGrid();
+}
+
+function filterByGenre(g) {
+  currentGenre = g;
+  document.querySelectorAll('.genre-btn').forEach(btn => {
+    const isActive = btn.textContent.trim() === (g==='all'?'Все':g==='action'?'Экшен':g==='romance'?'Романтика':g==='fantasy'?'Фэнтези':g==='horror'?'Хоррор':'Комедия');
+    btn.style.background = isActive ? 'rgba(255,62,108,0.2)' : 'rgba(255,255,255,0.05)';
+    btn.style.color = isActive ? '#ff3e6c' : 'rgba(255,255,255,0.6)';
+  });
+  renderGrid();
+}
+
+function sortManga(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.style.color = btn.textContent.includes(s==='rating'?'рейтингу':s==='chapters'?'главам':'имени') ? '#ff3e6c' : '';
+  });
+  renderGrid();
+}
+
+function toggleSearch() {
+  const overlay = document.getElementById('search-overlay');
+  overlay.classList.toggle('hidden');
+  if (!overlay.classList.contains('hidden')) {
+    setTimeout(() => document.getElementById('search-input').focus(), 100);
+  } else {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-results').innerHTML = '';
+  }
+  lucide.createIcons();
+}
+
+function filterManga(q) {
+  const results = document.getElementById('search-results');
+  if (!q.trim()) { results.innerHTML = ''; return; }
+  const matches = mangaData.filter(m => m.title.toLowerCase().includes(q.toLowerCase()) || m.titleEn.toLowerCase().includes(q.toLowerCase()));
+  if (matches.length === 0) {
+    results.innerHTML = '<div class="px-4 py-4 text-sm text-white/30">Ничего не найдено</div>';
+    return;
+  }
+  results.innerHTML = matches.map(m => `
+    <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/5 transition" onclick="toggleSearch(); location.href='/novel.html?id='+m.id;">
+      <span class="text-2xl">${m.emoji}</span>
+      <div>
+        <div class="text-sm font-semibold text-white">${m.title}</div>
+        <div class="text-xs text-white/40">${m.titleEn} · ${m.rating}★</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- AUTH / SESSION ---
+function updateNavUser(user) {
+  document.getElementById('nav-auth').style.display = 'none';
+  const navUser = document.getElementById('nav-user');
+  navUser.style.display = 'flex';
+  document.getElementById('nav-username').textContent = '\u{1F464} ' + user.username;
+  lucide.createIcons();
+}
+
+function logout() {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+  window.location.reload();
+}
+
+(function restoreSession() {
+  const stored = localStorage.getItem('user');
+  if (stored) { try { updateNavUser(JSON.parse(stored)); } catch(e) {} }
+})();
+
+// --- INIT ---
+applyConfig(defaultConfig);
+showSection('catalog');
+lucide.createIcons();
+</script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{fontFamily:{heading:['Unbounded','sans-serif'],body:['Nunito Sans','sans-serif']}}}}</script>
+  <style>
+    html,body{margin:0;min-height:100%;box-sizing:border-box;}*{box-sizing:border-box;}
+    ::-webkit-scrollbar{width:8px;}::-webkit-scrollbar-track{background:#0d0d14;}
+    ::-webkit-scrollbar-thumb{background:#2a2a3d;border-radius:4px;}::-webkit-scrollbar-thumb:hover{background:#ff3e6c;}
+    .nav-link{position:relative;}
+    .nav-link::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:2px;background:#ff3e6c;transition:width .3s;}
+    .nav-link:hover::after{width:100%;}
+    .chapter-row{transition:background .15s,border-color .15s;}
+    .chapter-row:hover{background:rgba(255,62,108,0.07);border-color:rgba(255,62,108,0.2)!important;}
+    .tab-btn{border-bottom:2px solid transparent;transition:color .2s,border-color .2s;padding-bottom:12px;font-size:14px;font-weight:600;}
+    .tab-btn.active{color:#ff3e6c!important;border-color:#ff3e6c;}
+    .novel-card{transition:transform .2s,box-shadow .2s;}
+    .novel-card:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(255,62,108,0.2);}
+    .badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;}
+    .progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.07);}
+    .progress-fill{height:100%;border-radius:3px;background:#ff3e6c;}
+    .review-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px;transition:border-color .2s;}
+    .review-card:hover{border-color:rgba(255,62,108,0.2);}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    .fade-up{animation:fadeUp .4s ease forwards;}
+    .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 100%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .star-btn{font-size:22px;transition:transform .1s,color .1s;color:rgba(255,255,255,0.15);background:none;border:none;cursor:pointer;padding:0 1px;}
+    .star-btn:hover{transform:scale(1.2);}
+    .star-btn.lit{color:#ffd700;}
+  </style>
+</head>
+<body class="font-body" style="background:#0d0d14;color:#e0dfe4;">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 w-full border-b border-white/5" style="background:rgba(13,13,20,0.95);backdrop-filter:blur(16px);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+    <div class="flex items-center gap-6">
+      <a href="/index.html" class="font-heading font-extrabold text-lg" style="color:#ff3e6c;">NovelVerse</a>
+      <div class="hidden md:flex gap-5 text-sm font-semibold">
+        <a href="/index.html" class="nav-link text-white/60 hover:text-white">Каталог</a>
+        <a href="/index.html" class="nav-link text-white/60 hover:text-white">Популярное</a>
+        <a href="/index.html" class="nav-link text-white/60 hover:text-white">Новинки</a>
+      </div>
+    </div>
+    <div id="nav-auth" class="flex items-center gap-2">
+      <a href="/login.html" class="px-3 py-1.5 rounded-lg text-sm font-semibold" style="color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);">Войти</a>
+      <a href="/register.html" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold" style="background:#ff3e6c;color:#fff;">
+        <i data-lucide="user-plus" style="width:14px;height:14px;"></i>Регистрация
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- BANNER -->
+<div class="relative overflow-hidden" style="height:300px;">
+  <div id="banner-bg" class="absolute inset-0" style="background:linear-gradient(135deg,#8e44ad33,#8e44ad11);"></div>
+  <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(13,13,20,0) 20%,#0d0d14 100%);"></div>
+  <div id="banner-emoji" class="absolute inset-0 flex items-center justify-center text-[130px] opacity-10 select-none pointer-events-none"></div>
+</div>
+
+<!-- CONTENT -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 -mt-44 relative z-10 pb-24">
+
+  <!-- INFO -->
+  <div class="flex flex-col md:flex-row gap-8 mb-12 fade-up">
+
+    <!-- Cover -->
+    <div class="shrink-0">
+      <div id="cover" class="rounded-2xl overflow-hidden" style="width:190px;height:268px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+        <div id="cover-inner" class="w-full h-full flex items-center justify-center text-8xl"></div>
+      </div>
+      <div class="mt-3 space-y-2" style="width:190px;">
+        <button onclick="startReading()" class="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2" style="background:#ff3e6c;color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">
+          <i data-lucide="book-open" style="width:15px;height:15px;"></i>Читать
+        </button>
+        <button onclick="toggleBookmark()" id="bm-btn" class="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">
+          <i data-lucide="bookmark" style="width:15px;height:15px;"></i><span id="bm-label">В закладки</span>
+        </button>
+        <button onclick="shareNovel()" class="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">
+          <i data-lucide="share-2" style="width:15px;height:15px;"></i>Поделиться
+        </button>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="flex-1 pt-28 md:pt-12">
+      <div class="flex items-center gap-2 text-xs text-white/30 mb-3">
+        <a href="/index.html" class="hover:text-white/60 transition">Каталог</a>
+        <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+        <span id="bc-genre">...</span>
+        <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+        <span id="bc-title" class="text-white/50">...</span>
+      </div>
+
+      <!-- Skeleton title -->
+      <div id="skel-title" class="skeleton h-8 w-2/3 mb-2"></div>
+      <h1 id="novel-title" class="font-heading font-extrabold text-2xl sm:text-3xl mb-1 hidden" style="color:#fff;"></h1>
+      <p id="novel-orig" class="text-sm mb-4" style="color:rgba(255,255,255,0.3);"></p>
+
+      <div id="novel-badges" class="flex flex-wrap gap-2 mb-4"></div>
+
+      <!-- Stats -->
+      <div class="flex flex-wrap gap-5 mb-5">
+        <div class="flex items-center gap-2">
+          <span id="stat-stars" class="text-yellow-400 text-lg"></span>
+          <span id="stat-rating" class="font-heading font-bold text-xl" style="color:#fff;">—</span>
+          <span id="stat-votes" class="text-xs text-white/25"></span>
+        </div>
+        <div class="flex items-center gap-1.5 text-sm text-white/45">
+          <i data-lucide="book" style="width:14px;height:14px;color:#ff3e6c;"></i>
+          <span id="stat-chapters">— томов</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-sm text-white/45">
+          <i data-lucide="eye" style="width:14px;height:14px;color:#7c3aed;"></i>
+          <span id="stat-views">— просмотров</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-sm text-white/45">
+          <i data-lucide="bookmark" style="width:14px;height:14px;color:#22d3ee;"></i>
+          <span id="stat-bm">— в закладках</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div id="skel-desc" class="space-y-2 mb-4">
+        <div class="skeleton h-4 w-full"></div>
+        <div class="skeleton h-4 w-5/6"></div>
+        <div class="skeleton h-4 w-4/6"></div>
+      </div>
+      <p id="novel-desc" class="text-sm leading-relaxed hidden mb-1" style="color:rgba(255,255,255,0.6);"></p>
+      <button id="desc-toggle" onclick="toggleDesc()" class="text-xs font-semibold hidden" style="color:#ff3e6c;background:none;border:none;cursor:pointer;">Читать полностью ▼</button>
+
+      <!-- Meta -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-5">
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Автор</div>
+          <div class="text-sm font-semibold text-white" id="meta-author">—</div>
+        </div>
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Год</div>
+          <div class="text-sm font-semibold text-white" id="meta-year">—</div>
+        </div>
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Статус</div>
+          <div class="text-sm font-semibold" id="meta-status">—</div>
+        </div>
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Жанр</div>
+          <div class="text-sm font-semibold text-white" id="meta-genre">—</div>
+        </div>
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Оригинал</div>
+          <div class="text-sm font-semibold text-white">Японский 🇯🇵</div>
+        </div>
+        <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+          <div class="text-xs text-white/30 mb-1">Перевод</div>
+          <div class="text-sm font-semibold text-white">Русский 🇷🇺</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="flex gap-6 border-b border-white/5 mb-8">
+    <button class="tab-btn active text-white" onclick="switchTab('chapters',this)">Тома</button>
+    <button class="tab-btn text-white/40" onclick="switchTab('reviews',this)">Отзывы</button>
+    <button class="tab-btn text-white/40" onclick="switchTab('rating',this)">Рейтинг</button>
+    <button class="tab-btn text-white/40" onclick="switchTab('similar',this)">Похожие</button>
+  </div>
+
+  <!-- TAB CHAPTERS -->
+  <div id="tab-chapters">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-heading font-bold text-lg" style="color:#fff;">Все тома</h2>
+      <div class="flex gap-2">
+        <button onclick="setSortChapters('asc')" id="sort-asc" class="text-xs px-3 py-1.5 rounded-lg font-semibold transition" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);">Старые</button>
+        <button onclick="setSortChapters('desc')" id="sort-desc" class="text-xs px-3 py-1.5 rounded-lg font-semibold transition" style="background:rgba(255,62,108,0.2);color:#ff3e6c;">Новые</button>
+      </div>
+    </div>
+    <div id="chapters-list" class="space-y-2">
+      <div class="skeleton h-14 rounded-xl"></div>
+      <div class="skeleton h-14 rounded-xl"></div>
+      <div class="skeleton h-14 rounded-xl"></div>
+    </div>
+    <button id="show-all-btn" onclick="showAllChapters()" class="mt-5 w-full py-3 rounded-xl text-sm font-semibold hidden transition" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.45);">Показать все тома</button>
+  </div>
+
+  <!-- TAB REVIEWS -->
+  <div id="tab-reviews" class="hidden">
+    <div class="rounded-2xl p-6 mb-6" style="background:#1a1a2e;border:1px solid rgba(255,62,108,0.15);">
+      <h3 class="font-heading font-bold text-sm mb-4" style="color:#fff;">Оставить отзыв</h3>
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-sm text-white/40 mr-1">Оценка:</span>
+        <div id="star-rating" class="flex gap-0.5">
+          <button class="star-btn" onclick="setUserRating(1)" data-v="1">★</button>
+          <button class="star-btn" onclick="setUserRating(2)" data-v="2">★</button>
+          <button class="star-btn" onclick="setUserRating(3)" data-v="3">★</button>
+          <button class="star-btn" onclick="setUserRating(4)" data-v="4">★</button>
+          <button class="star-btn" onclick="setUserRating(5)" data-v="5">★</button>
+          <button class="star-btn" onclick="setUserRating(6)" data-v="6">★</button>
+          <button class="star-btn" onclick="setUserRating(7)" data-v="7">★</button>
+          <button class="star-btn" onclick="setUserRating(8)" data-v="8">★</button>
+          <button class="star-btn" onclick="setUserRating(9)" data-v="9">★</button>
+          <button class="star-btn" onclick="setUserRating(10)" data-v="10">★</button>
+        </div>
+        <span id="rating-lbl" class="text-xs text-white/30 ml-1 w-24"></span>
+      </div>
+      <textarea id="review-text" rows="4" maxlength="500" placeholder="Расскажи что думаешь об этом ранобэ..."
+        class="w-full rounded-xl p-4 text-sm outline-none resize-none"
+        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#fff;"
+        oninput="document.getElementById('char-ct').textContent=this.value.length+' / 500'"
+        onfocus="this.style.borderColor='rgba(255,62,108,0.35)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"></textarea>
+      <div class="flex justify-between items-center mt-3">
+        <span id="char-ct" class="text-xs text-white/20">0 / 500</span>
+        <button onclick="submitReview()" class="px-5 py-2 rounded-xl font-bold text-sm" style="background:#ff3e6c;color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">Опубликовать</button>
+      </div>
+    </div>
+    <div id="reviews-list" class="space-y-4"></div>
+  </div>
+
+  <!-- TAB RATING -->
+  <div id="tab-rating" class="hidden max-w-md">
+    <div class="rounded-2xl p-6" style="background:#1a1a2e;border:1px solid rgba(255,62,108,0.15);">
+      <div class="flex items-start gap-8 mb-6">
+        <div class="text-center shrink-0">
+          <div id="big-rating" class="font-heading font-extrabold text-5xl" style="color:#ff3e6c;">—</div>
+          <div id="big-stars" class="text-yellow-400 text-xl mt-1"></div>
+          <div class="text-xs text-white/25 mt-1">из 10</div>
+        </div>
+        <div id="rating-bars" class="flex-1 space-y-2.5"></div>
+      </div>
+      <p class="text-xs text-center text-white/25">Основано на 2 134 оценках</p>
+    </div>
+  </div>
+
+  <!-- TAB SIMILAR -->
+  <div id="tab-similar" class="hidden">
+    <h2 class="font-heading font-bold text-lg mb-5" style="color:#fff;">Похожие ранобэ</h2>
+    <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div class="skeleton rounded-2xl" style="aspect-ratio:3/4;"></div>
+      <div class="skeleton rounded-2xl" style="aspect-ratio:3/4;"></div>
+      <div class="skeleton rounded-2xl" style="aspect-ratio:3/4;"></div>
+      <div class="skeleton rounded-2xl" style="aspect-ratio:3/4;"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-sm font-semibold z-50 transition-all duration-300" style="background:#1a1a2e;border:1px solid rgba(255,62,108,0.3);color:#fff;opacity:0;pointer-events:none;"></div>
+
+<script>
+const API = 'http://localhost:8080/api';
+let novelId=0, novel=null, chapters=[], isBookmarked=false, userRating=0, descFull=false;
+let chapOrder='desc', shownCount=8;
+const localReviews=[];
+
+async function init() {
+  const p = new URLSearchParams(window.location.search);
+  novelId = parseInt(p.get('id'));
+  if (!novelId) { window.location.href='/index.html'; return; }
+
+  // restore nav user
+  try {
+    const u = JSON.parse(localStorage.getItem('user'));
+    if (u) document.getElementById('nav-auth').innerHTML=`
+      <span class="text-sm text-white/70 font-semibold">👤 ${u.username}</span>
+      <button onclick="localStorage.clear();location.reload()" class="px-3 py-1.5 rounded-lg text-sm font-semibold" style="color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.1);">Выйти</button>`;
+  } catch(e){}
+
+  await Promise.all([loadNovel(), loadChapters()]);
+  loadSimilar();
+  renderReviews();
+  renderRatingBars();
+}
+
+async function loadNovel() {
+  try {
+    const res = await fetch(`${API}/novels/${novelId}`);
+    if (!res.ok) { showFatal(); return; }
+    novel = await res.json();
+    applyNovel(novel);
+  } catch(e) { showFatal(); }
+}
+
+function applyNovel(n) {
+  const color = n.coverColor || '#8e44ad';
+  document.title = `NovelVerse — ${n.title}`;
+  document.getElementById('banner-bg').style.background = `linear-gradient(135deg,${color}44,${color}11)`;
+  document.getElementById('banner-emoji').textContent   = n.coverEmoji || '📖';
+  document.getElementById('cover').style.background     = `linear-gradient(135deg,${color}55,${color}22)`;
+  document.getElementById('cover-inner').textContent    = n.coverEmoji || '📖';
+
+  document.getElementById('skel-title').remove();
+  const t = document.getElementById('novel-title');
+  t.textContent = n.title; t.classList.remove('hidden');
+  document.getElementById('novel-orig').textContent = n.titleOriginal || '';
+  document.getElementById('bc-genre').textContent   = n.genre || 'Ранобэ';
+  document.getElementById('bc-title').textContent   = n.title;
+
+  document.getElementById('novel-badges').innerHTML = [
+    `<span class="badge" style="background:${color}22;color:${color};">${n.genre||'Ранобэ'}</span>`,
+    `<span class="badge" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);">${n.status||'—'}</span>`,
+    `<span class="badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;">Ранобэ</span>`,
+    `<span class="badge" style="background:rgba(34,211,238,0.1);color:#22d3ee;">Перевод</span>`,
+  ].join('');
+
+  const r = n.rating||0, sc = Math.round(r/2);
+  document.getElementById('stat-stars').textContent   = '★'.repeat(sc)+'☆'.repeat(5-sc);
+  document.getElementById('stat-rating').textContent  = r ? r.toFixed(1) : '—';
+  document.getElementById('stat-votes').textContent   = '(2.1K оценок)';
+  document.getElementById('stat-chapters').textContent= `${n.chaptersCount||0} томов`;
+  document.getElementById('stat-views').textContent   = n.views ? fmtNum(n.views)+' просмотров' : '— просмотров';
+  document.getElementById('stat-bm').textContent      = n.bookmarksCount ? fmtNum(n.bookmarksCount)+' в закладках' : '— в закладках';
+  document.getElementById('big-rating').textContent   = r ? r.toFixed(1) : '—';
+  document.getElementById('big-stars').textContent    = '★'.repeat(sc)+'☆'.repeat(5-sc);
+
+  document.getElementById('skel-desc').remove();
+  const desc = n.description||'', short=200;
+  const d = document.getElementById('novel-desc');
+  d.textContent = desc.length>short ? desc.slice(0,short)+'...' : desc;
+  d.classList.remove('hidden');
+  if (desc.length>short) document.getElementById('desc-toggle').classList.remove('hidden');
+
+  document.getElementById('meta-author').textContent = n.author||'—';
+  document.getElementById('meta-year').textContent   = n.year||'—';
+  document.getElementById('meta-genre').textContent  = n.genre||'—';
+  const s = document.getElementById('meta-status');
+  s.textContent = n.status||'—';
+  s.style.color = n.status==='Завершено' ? '#22d3ee' : '#ff3e6c';
+}
+
+async function loadChapters() {
+  try {
+    const res = await fetch(`${API}/novels/${novelId}/chapters?order=${chapOrder}`);
+    if (!res.ok) { document.getElementById('chapters-list').innerHTML='<p class="text-sm text-white/30 py-6 text-center">Главы не найдены</p>'; return; }
+    chapters = await res.json();
+    renderChapters();
+  } catch(e) { document.getElementById('chapters-list').innerHTML='<p class="text-sm text-white/30 py-6 text-center">Ошибка загрузки глав</p>'; }
+}
+
+function renderChapters() {
+  const shown = chapters.slice(0, shownCount);
+  document.getElementById('chapters-list').innerHTML = shown.map(c => {
+    const dt = fmtDate(c.createdAt), isNew = isRecent(c.createdAt);
+    return `
+      <div class="chapter-row flex items-center justify-between px-4 py-3.5 rounded-xl cursor-pointer"
+        style="border:1px solid rgba(255,255,255,0.05);"
+        onclick="location.href='/read.html?id=${novelId}&chapter=${c.number}'">
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-semibold text-white">${c.title||'Том '+c.number}</span>
+          ${isNew?'<span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background:rgba(255,62,108,0.2);color:#ff3e6c;">NEW</span>':''}
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-white/25">${dt}</span>
+          <i data-lucide="chevron-right" style="width:14px;height:14px;color:rgba(255,255,255,0.15);"></i>
+        </div>
+      </div>`;
+  }).join('');
+  const more = chapters.length > shownCount;
+  const btn  = document.getElementById('show-all-btn');
+  btn.classList.toggle('hidden', !more);
+  if (more) btn.textContent = `Показать все ${chapters.length} томов`;
+  lucide.createIcons();
+}
+
+function setSortChapters(order) {
+  chapOrder=order; shownCount=8;
+  document.getElementById('sort-asc').style.cssText  = order==='asc'  ? 'background:rgba(255,62,108,0.2);color:#ff3e6c;' : 'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);';
+  document.getElementById('sort-desc').style.cssText = order==='desc' ? 'background:rgba(255,62,108,0.2);color:#ff3e6c;' : 'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);';
+  loadChapters();
+}
+function showAllChapters() { shownCount=9999; renderChapters(); }
+
+async function loadSimilar() {
+  try {
+    const res = await fetch(`${API}/novels/${novelId}/similar`);
+    const data = res.ok ? await res.json() : [];
+    const g = document.getElementById('similar-grid');
+    if (!data.length) { g.innerHTML='<p class="col-span-4 text-sm text-white/30">Похожих ранобэ не найдено</p>'; return; }
+    g.innerHTML = data.map(n=>`
+      <div class="novel-card rounded-2xl overflow-hidden cursor-pointer" style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.05);"
+        onclick="location.href='/novel.html?id=${n.id}'">
+        <div style="aspect-ratio:3/4;background:linear-gradient(135deg,${n.coverColor||'#8e44ad'}44,${n.coverColor||'#8e44ad'}11);display:flex;align-items:center;justify-content:center;font-size:56px;">${n.coverEmoji||'📖'}</div>
+        <div class="p-3">
+          <div class="text-sm font-semibold text-white truncate">${n.title}</div>
+          <div class="flex justify-between mt-1.5">
+            <span class="text-xs text-white/40">${n.genre||''}</span>
+            <span class="text-xs text-yellow-400">★ ${n.rating?n.rating.toFixed(1):'—'}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e){}
+}
+
+// Reviews
+const demoReviews=[
+  {user:'Shadowreader',avatar:'🐺',rating:10,date:'2 дня назад',text:'Одно из лучших ранобэ. Эмоции невероятные, арки с злодеями — шедевр.',likes:47},
+  {user:'MidnightReader',avatar:'🌙',rating:9,date:'неделю назад',text:'Отличная история, местами затянуто. Развитие персонажей на высшем уровне.',likes:23},
+  {user:'NovelKing',avatar:'👑',rating:8,date:'2 недели назад',text:'Хорошее ранобэ, не без недостатков. В целом читается интересно.',likes:11},
+];
+function renderReviews() {
+  document.getElementById('reviews-list').innerHTML=[...localReviews,...demoReviews].map(r=>`
+    <div class="review-card">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-lg" style="background:rgba(255,255,255,0.07);">${r.avatar}</div>
+          <div><div class="text-sm font-semibold text-white">${r.user}</div><div class="text-xs text-white/25">${r.date}</div></div>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-yellow-400">${'★'.repeat(Math.round(r.rating/2))}</span>
+          <span class="text-xs font-bold text-white/50 ml-1">${r.rating}/10</span>
+        </div>
+      </div>
+      <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,0.6);">${r.text}</p>
+      <button class="flex items-center gap-1.5 text-xs text-white/25 hover:text-white/50 mt-3 transition">
+        <i data-lucide="thumbs-up" style="width:12px;height:12px;"></i>${r.likes}
+      </button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function setUserRating(val) {
+  userRating=val;
+  const L=['','Ужасно','Плохо','Слабо','Ниже среднего','Средне','Неплохо','Хорошо','Очень хорошо','Отлично','Шедевр'];
+  document.getElementById('rating-lbl').textContent=L[val];
+  document.querySelectorAll('.star-btn').forEach(b=>b.classList.toggle('lit',parseInt(b.dataset.v)<=val));
+}
+function submitReview() {
+  const text=document.getElementById('review-text').value.trim();
+  if (!userRating){showToast('⚠ Поставь оценку');return;}
+  if (text.length<20){showToast('⚠ Напиши хотя бы 20 символов');return;}
+  try{const u=JSON.parse(localStorage.getItem('user'));localReviews.unshift({user:u?.username||'Аноним',avatar:'😊',rating:userRating,date:'только что',text,likes:0});}catch(e){localReviews.unshift({user:'Аноним',avatar:'😊',rating:userRating,date:'только что',text,likes:0});}
+  document.getElementById('review-text').value='';
+  setUserRating(0);
+  renderReviews();
+  showToast('✓ Отзыв опубликован');
+}
+
+function renderRatingBars() {
+  document.getElementById('rating-bars').innerHTML=[{s:10,p:42},{s:9,p:28},{s:8,p:16},{s:7,p:7},{s:6,p:4},{s:'1–5',p:3}].map(d=>`
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-white/35 w-6 text-right">${d.s}</span>
+      <div class="progress-bar flex-1"><div class="progress-fill" style="width:${d.p}%;"></div></div>
+      <span class="text-xs text-white/25 w-8">${d.p}%</span>
+    </div>`).join('');
+}
+
+function switchTab(name,btn) {
+  ['chapters','reviews','rating','similar'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==name));
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.style.color='rgba(255,255,255,0.4)';});
+  btn.classList.add('active'); btn.style.color='#ff3e6c';
+}
+
+function toggleDesc() {
+  if(!novel)return;
+  descFull=!descFull;
+  document.getElementById('novel-desc').textContent=descFull?novel.description:novel.description.slice(0,200)+'...';
+  document.getElementById('desc-toggle').textContent=descFull?'Свернуть ▲':'Читать полностью ▼';
+}
+function toggleBookmark() {
+  isBookmarked=!isBookmarked;
+  const b=document.getElementById('bm-btn');
+  document.getElementById('bm-label').textContent=isBookmarked?'В закладках':'В закладки';
+  b.style.background=isBookmarked?'rgba(255,62,108,0.15)':'rgba(255,255,255,0.05)';
+  b.style.borderColor=isBookmarked?'rgba(255,62,108,0.35)':'rgba(255,255,255,0.1)';
+  b.style.color=isBookmarked?'#ff3e6c':'rgba(255,255,255,0.7)';
+}
+function startReading(){location.href=`/read.html?id=${novelId}&chapter=1`;}
+function shareNovel(){navigator.clipboard.writeText(location.href).catch(()=>{});showToast('✓ Ссылка скопирована');}
+
+function fmtNum(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n;}
+function fmtDate(iso){if(!iso)return'';const d=new Date(iso),now=new Date(),diff=Math.floor((now-d)/86400000);if(diff===0)return'сегодня';if(diff===1)return'вчера';if(diff<7)return diff+' дн. назад';if(diff<30)return Math.floor(diff/7)+' нед. назад';return Math.floor(diff/30)+' мес. назад';}
+function isRecent(iso){if(!iso)return false;return(new Date()-new Date(iso))/86400000<=3;}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2500);}
+function showFatal(){document.querySelector('main').innerHTML=`<div class="text-center py-32"><div class="text-4xl mb-4">😕</div><p class="text-white/40">Ранобэ не найдено</p><a href="/index.html" class="inline-block mt-6 px-6 py-3 rounded-xl font-bold text-sm" style="background:#ff3e6c;color:#fff;">На главную</a></div>`;}
+
+// Handle OAuth redirect token
+(function(){
+  const p = new URLSearchParams(location.search);
+  const t = p.get('token');
+  if (t) {
+    localStorage.setItem('accessToken', t);
+    // remove token from URL
+    const url = new URL(location.href);
+    url.searchParams.delete('token');
+    history.replaceState({}, '', url.toString());
+  }
+})();
+init();lucide.createIcons();
+</script>
+</body>
+</html>

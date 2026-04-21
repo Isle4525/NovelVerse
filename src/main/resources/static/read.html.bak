@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse — Читать</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;}html,body{margin:0;min-height:100%;}
+    ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:#2a2a3d;border-radius:3px;}
+
+    /* THEMES */
+    body.t-dark  {background:#0d0d14;color:#dddce0;}
+    body.t-sepia {background:#18130e;color:#d5c9a5;}
+    body.t-light {background:#f7f5f0;color:#222;}
+    body.t-amoled{background:#000;color:#c8c8c8;}
+
+    /* BARS */
+    #top-bar,#bottom-bar{
+      position:fixed;left:0;right:0;z-index:50;
+      transition:transform .25s,opacity .25s;
+    }
+    #top-bar{top:0;}
+    #bottom-bar{bottom:0;}
+    #top-bar.hide{transform:translateY(-100%);opacity:0;}
+    #bottom-bar.hide{transform:translateY(100%);opacity:0;}
+
+    /* PROGRESS */
+    #read-progress{position:fixed;top:0;left:0;height:3px;background:#ff3e6c;z-index:100;transition:width .1s;pointer-events:none;}
+
+    /* SETTINGS PANEL */
+    #settings-panel{
+      position:fixed;right:0;top:0;bottom:0;width:300px;z-index:200;
+      transform:translateX(100%);transition:transform .3s;overflow-y:auto;
+    }
+    #settings-panel.open{transform:translateX(0);}
+    #overlay{position:fixed;inset:0;z-index:190;background:rgba(0,0,0,0.5);display:none;}
+    #overlay.open{display:block;}
+
+    /* TOC PANEL */
+    #toc-panel{
+      position:fixed;left:0;top:0;bottom:0;width:280px;z-index:200;
+      transform:translateX(-100%);transition:transform .3s;overflow-y:auto;
+    }
+    #toc-panel.open{transform:translateX(0);}
+    #toc-overlay{position:fixed;inset:0;z-index:190;background:rgba(0,0,0,0.5);display:none;}
+    #toc-overlay.open{display:block;}
+
+    /* READER */
+    #reader{line-height:1.9;transition:font-size .2s,line-height .2s;}
+    #reader p{margin:0 0 1.3em 0;}
+    #reader p:first-of-type::first-letter{font-size:3.2em;font-weight:700;float:left;line-height:0.8;margin:0.08em 0.1em 0 0;color:#ff3e6c;}
+    ::selection{background:rgba(255,62,108,0.22);}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    #reader{animation:fadeIn .4s ease;}
+
+    /* FONT OPTIONS */
+    .font-nunito{font-family:'Nunito Sans',sans-serif;}
+    .font-merriweather{font-family:'Merriweather',serif;}
+    .font-georgia{font-family:Georgia,serif;}
+
+    /* Settings btn styles */
+    .s-option{width:100%;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;text-align:left;cursor:pointer;transition:background .15s,border-color .15s;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);}
+    .s-option.active{background:rgba(255,62,108,0.15);border-color:rgba(255,62,108,0.35);color:#fff;}
+
+    .s-chip{flex:1;padding:8px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);}
+    .s-chip.active{background:rgba(255,62,108,0.2);color:#ff3e6c;}
+
+    .theme-tile{padding:12px 8px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;border:2px solid rgba(255,255,255,0.08);transition:border-color .15s;}
+    .theme-tile.active{border-color:#ff3e6c;}
+
+    /* Chapter end */
+    #ch-end{background:rgba(255,62,108,0.05);border:1px solid rgba(255,62,108,0.15);border-radius:20px;padding:24px;text-align:center;margin-top:32px;}
+  </style>
+</head>
+<body class="t-dark" style="font-family:'Nunito Sans',sans-serif;">
+
+<div id="read-progress"></div>
+
+<!-- TOP BAR -->
+<div id="top-bar" style="background:rgba(13,13,20,0.97);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(16px);">
+  <div class="flex items-center justify-between px-4 h-14">
+    <div class="flex items-center gap-3">
+      <button onclick="goBack()" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition">
+        <i data-lucide="arrow-left" style="width:18px;height:18px;"></i>
+      </button>
+      <div>
+        <div id="top-title" class="text-sm font-semibold text-white max-w-[160px] sm:max-w-xs truncate" style="font-family:'Unbounded',sans-serif;font-size:12px;">...</div>
+        <div id="top-chap" class="text-xs text-white/30">Том 1</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1">
+      <button onclick="openTOC()" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition">
+        <i data-lucide="list" style="width:18px;height:18px;"></i>
+      </button>
+      <button onclick="toggleChapterBookmark()" id="ch-bm-btn" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition">
+        <i data-lucide="bookmark" style="width:18px;height:18px;" id="ch-bm-icon"></i>
+      </button>
+      <button onclick="openSettings()" class="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition">
+        <i data-lucide="settings-2" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- READER -->
+<div id="reader-wrap" class="pt-14 pb-24 min-h-screen" onclick="toggleBars(event)">
+  <div id="reader-container" class="mx-auto px-5 sm:px-8 py-12" style="max-width:680px;">
+
+    <!-- Chapter header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4"
+        style="background:rgba(255,62,108,0.15);color:#ff3e6c;border:1px solid rgba(255,62,108,0.25);">
+        <i data-lucide="book-open" style="width:12px;height:12px;"></i>
+        <span id="chap-badge">Том 1</span>
+      </div>
+      <h1 id="chap-title" class="font-bold text-xl sm:text-2xl mb-3" style="color:#fff;font-family:'Unbounded',sans-serif;font-size:18px;"></h1>
+      <div class="flex items-center justify-center gap-4 text-xs text-white/25">
+        <span id="word-count"></span>
+        <span>·</span>
+        <span id="read-time"></span>
+      </div>
+    </div>
+
+    <!-- Divider top -->
+    <div class="flex items-center gap-4 mb-10">
+      <div class="flex-1 h-px" style="background:linear-gradient(to right,transparent,rgba(255,62,108,0.3),transparent);"></div>
+      <span style="color:#ff3e6c;">❧</span>
+      <div class="flex-1 h-px" style="background:linear-gradient(to left,transparent,rgba(255,62,108,0.3),transparent);"></div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="reader"></div>
+
+    <!-- Divider bottom -->
+    <div class="flex items-center gap-4 my-10">
+      <div class="flex-1 h-px" style="background:linear-gradient(to right,transparent,rgba(255,62,108,0.3),transparent);"></div>
+      <span style="color:#ff3e6c;">✦</span>
+      <div class="flex-1 h-px" style="background:linear-gradient(to left,transparent,rgba(255,62,108,0.3),transparent);"></div>
+    </div>
+
+    <!-- Chapter end -->
+    <div id="ch-end">
+      <div class="text-3xl mb-3">📖</div>
+      <h3 class="font-bold text-base mb-2" style="color:#fff;font-family:'Unbounded',sans-serif;font-size:14px;">Конец тома <span id="end-num"></span></h3>
+      <p class="text-sm mb-5 text-white/40">Читай дальше!</p>
+      <div class="flex gap-3 justify-center">
+        <button id="end-prev" onclick="prevChapter()" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);">← Пред. том</button>
+        <button id="end-next" onclick="nextChapter()" class="px-5 py-2.5 rounded-xl font-bold text-sm transition" style="background:#ff3e6c;color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">След. том →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottom-bar" style="background:rgba(13,13,20,0.97);border-top:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(16px);">
+  <div class="flex items-center justify-between px-4 h-14">
+    <button onclick="prevChapter()" id="bar-prev" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);">
+      <i data-lucide="chevron-left" style="width:15px;height:15px;"></i>Пред.
+    </button>
+    <div class="text-center">
+      <div id="bar-pos" class="text-xs text-white/35">Том 1</div>
+      <div class="flex items-center gap-2 mt-0.5">
+        <div class="w-28 h-1.5 rounded-full" style="background:rgba(255,255,255,0.08);">
+          <div id="bar-progress" class="h-full rounded-full transition-all" style="background:#ff3e6c;width:0%;"></div>
+        </div>
+        <span id="bar-pct" class="text-xs text-white/25">0%</span>
+      </div>
+    </div>
+    <button onclick="nextChapter()" id="bar-next" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition" style="background:#ff3e6c;color:#fff;" onmouseenter="this.style.background='#e0355f'" onmouseleave="this.style.background='#ff3e6c'">
+      След.<i data-lucide="chevron-right" style="width:15px;height:15px;"></i>
+    </button>
+  </div>
+</div>
+
+<!-- TOC PANEL -->
+<div id="toc-overlay" onclick="closeTOC()"></div>
+<div id="toc-panel" style="background:#12121e;border-right:1px solid rgba(255,255,255,0.07);">
+  <div class="flex items-center justify-between px-4 py-4 border-b border-white/5">
+    <span style="font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;color:#fff;">Оглавление</span>
+    <button onclick="closeTOC()" class="p-1 text-white/40 hover:text-white"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+  </div>
+  <div id="toc-list" class="p-3 space-y-1"></div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div id="overlay" onclick="closeSettings()"></div>
+<div id="settings-panel" style="background:#12121e;border-left:1px solid rgba(255,255,255,0.07);">
+  <div class="flex items-center justify-between px-4 py-4 border-b border-white/5">
+    <span style="font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;color:#fff;">Настройки</span>
+    <button onclick="closeSettings()" class="p-1 text-white/40 hover:text-white"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+  </div>
+
+  <div class="p-5 space-y-7">
+
+    <!-- Font size -->
+    <div>
+      <div class="text-xs font-bold text-white/35 uppercase tracking-wider mb-3">Размер текста</div>
+      <div class="flex items-center gap-3">
+        <button onclick="changeFontSize(-1)" class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg transition" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);">A−</button>
+        <div class="flex-1 text-center"><span id="fs-label" class="text-sm font-semibold text-white">16px</span></div>
+        <button onclick="changeFontSize(1)"  class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl transition" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);">A+</button>
+      </div>
+    </div>
+
+    <!-- Line height -->
+    <div>
+      <div class="text-xs font-bold text-white/35 uppercase tracking-wider mb-3">Межстрочный</div>
+      <div class="flex gap-2">
+        <button class="s-chip" onclick="setLH(1.5,this)">Узкий</button>
+        <button class="s-chip active" onclick="setLH(1.9,this)">Норм</button>
+        <button class="s-chip" onclick="setLH(2.5,this)">Широкий</button>
+      </div>
+    </div>
+
+    <!-- Width -->
+    <div>
+      <div class="text-xs font-bold text-white/35 uppercase tracking-wider mb-3">Ширина</div>
+      <div class="flex gap-2">
+        <button class="s-chip" onclick="setWidth(560,this)">Узко</button>
+        <button class="s-chip active" onclick="setWidth(680,this)">Норм</button>
+        <button class="s-chip" onclick="setWidth(820,this)">Широко</button>
+      </div>
+    </div>
+
+    <!-- Font -->
+    <div>
+      <div class="text-xs font-bold text-white/35 uppercase tracking-wider mb-3">Шрифт</div>
+      <div class="space-y-2">
+        <button class="s-option active font-nunito" onclick="setFont('Nunito Sans',this)">Nunito Sans — современный</button>
+        <button class="s-option font-merriweather" onclick="setFont('Merriweather',this)" style="font-family:'Merriweather',serif;">Merriweather — книжный</button>
+        <button class="s-option" onclick="setFont('Georgia',this)" style="font-family:Georgia,serif;">Georgia — классика</button>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div>
+      <div class="text-xs font-bold text-white/35 uppercase tracking-wider mb-3">Тема</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="theme-tile active" style="background:#0d0d14;color:#dddce0;" onclick="setTheme('t-dark',this)">
+          <span class="text-xl">🌙</span>Тёмная
+        </button>
+        <button class="theme-tile" style="background:#18130e;color:#d5c9a5;" onclick="setTheme('t-sepia',this)">
+          <span class="text-xl">📜</span>Сепия
+        </button>
+        <button class="theme-tile" style="background:#f7f5f0;color:#222;" onclick="setTheme('t-light',this)">
+          <span class="text-xl">☀️</span>Светлая
+        </button>
+        <button class="theme-tile" style="background:#000;color:#c8c8c8;" onclick="setTheme('t-amoled',this)">
+          <span class="text-xl">⚫</span>AMOLED
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API='http://localhost:8080/api';
+let novelId=0, chapterNum=1, totalChapters=0, chapBm=false;
+let barsVisible=true, lastScrollY=0, scrollTimer=null;
+let fontSize=16;
+
+// ---- INIT ----
+async function init() {
+  const p = new URLSearchParams(location.search);
+  novelId    = parseInt(p.get('id'));
+  chapterNum = parseInt(p.get('chapter'))||1;
+  if (!novelId) { location.href='/index.html'; return; }
+
+  loadSettings();
+  await Promise.all([loadNovel(), loadChapter()]);
+  setupScroll();
+}
+
+async function loadNovel() {
+  try {
+    const res = await fetch(`${API}/novels/${novelId}`);
+    if (!res.ok) return;
+    const n = await res.json();
+    totalChapters = n.chaptersCount || 0;
+    document.getElementById('top-title').textContent = n.title || '';
+    document.title = `NovelVerse — ${n.title}`;
+    updateNavButtons();
+    await loadTOC();
+  } catch(e){}
+}
+
+async function loadChapter() {
+  const reader = document.getElementById('reader');
+  reader.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(255,255,255,0.3);font-size:13px;">Загрузка...</div>';
+
+  try {
+    const res = await fetch(`${API}/novels/${novelId}/chapters/${chapterNum}`);
+    if (!res.ok) { reader.innerHTML='<p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;">Глава не найдена</p>'; return; }
+    const ch = await res.json();
+    renderChapter(ch);
+  } catch(e) {
+    reader.innerHTML='<p style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;">Ошибка загрузки. Убедись что бэкенд запущен.</p>';
+  }
+}
+
+function renderChapter(ch) {
+  document.getElementById('top-chap').textContent   = ch.title || 'Том ' + ch.number;
+  document.getElementById('chap-badge').textContent = ch.title || 'Том ' + ch.number;
+  document.getElementById('chap-title').textContent = ch.title || '';
+  document.getElementById('end-num').textContent    = ch.number;
+  document.getElementById('bar-pos').textContent    = `Том ${ch.number} из ${totalChapters}`;
+
+  // word count + read time
+  const words = (ch.content||'').split(/\s+/).filter(Boolean).length;
+  document.getElementById('word-count').textContent = `~${fmtNum(words)} слов`;
+  document.getElementById('read-time').textContent  = `~${Math.max(1,Math.round(words/200))} мин`;
+
+  // Render content — split by \n\n into paragraphs
+  const paragraphs = (ch.content||'').split(/\n\n+/).filter(s=>s.trim());
+  document.getElementById('reader').innerHTML = paragraphs.map(p=>
+    `<p>${p.trim().replace(/\n/g,'<br>')}</p>`
+  ).join('');
+
+  // Update end buttons
+  document.getElementById('end-prev').style.display = chapterNum <= 1 ? 'none' : '';
+  document.getElementById('end-next').style.display = chapterNum >= totalChapters ? 'none' : '';
+
+  window.scrollTo(0,0);
+  updateProgress();
+}
+
+async function loadTOC() {
+  try {
+    const res = await fetch(`${API}/novels/${novelId}/chapters?order=asc`);
+    if (!res.ok) return;
+    const chapters = await res.json();
+    document.getElementById('toc-list').innerHTML = chapters.map(c=>`
+      <button onclick="goToChapter(${c.number})"
+        class="w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between"
+        style="background:${c.number===chapterNum?'rgba(255,62,108,0.15)':'rgba(255,255,255,0.03)'};color:${c.number===chapterNum?'#ff3e6c':'rgba(255,255,255,0.6)'};border:1px solid ${c.number===chapterNum?'rgba(255,62,108,0.3)':'rgba(255,255,255,0.05)'};">
+        <span>${c.title||'Том '+c.number}</span>
+        ${c.number===chapterNum?'<i data-lucide="check" style="width:13px;height:13px;"></i>':''}
+      </button>`).join('');
+    lucide.createIcons();
+  } catch(e){}
+}
+
+function goToChapter(n) { chapterNum=n; history.replaceState({},'',`/read.html?id=${novelId}&chapter=${n}`); closeTOC(); loadChapter(); loadTOC(); }
+function prevChapter() { if(chapterNum>1){chapterNum--;history.replaceState({},'',`/read.html?id=${novelId}&chapter=${chapterNum}`);loadChapter();loadTOC();} }
+function nextChapter() { if(chapterNum<totalChapters){chapterNum++;history.replaceState({},'',`/read.html?id=${novelId}&chapter=${chapterNum}`);loadChapter();loadTOC();} }
+function goBack() { location.href=`/novel.html?id=${novelId}`; }
+
+function updateNavButtons() {
+  document.getElementById('bar-prev').style.opacity = chapterNum<=1 ? '0.3' : '1';
+  document.getElementById('bar-next').style.opacity = chapterNum>=totalChapters ? '0.3' : '1';
+}
+
+// ---- SCROLL & PROGRESS ----
+function setupScroll() {
+  window.addEventListener('scroll', ()=>{
+    updateProgress();
+    const y = window.scrollY;
+    if (Math.abs(y-lastScrollY)>10) { hideBars(); resetBarTimer(); }
+    lastScrollY=y;
+  }, {passive:true});
+}
+
+function updateProgress() {
+  const doc=document.documentElement, body=document.body;
+  const top=doc.scrollTop||body.scrollTop;
+  const h=(doc.scrollHeight||body.scrollHeight)-doc.clientHeight;
+  const pct=h>0?Math.round(top/h*100):0;
+  document.getElementById('read-progress').style.width=pct+'%';
+  document.getElementById('bar-progress').style.width=pct+'%';
+  document.getElementById('bar-pct').textContent=pct+'%';
+}
+
+function hideBars(){
+  document.getElementById('top-bar').classList.add('hide');
+  document.getElementById('bottom-bar').classList.add('hide');
+  barsVisible=false;
+}
+function showBars(){
+  document.getElementById('top-bar').classList.remove('hide');
+  document.getElementById('bottom-bar').classList.remove('hide');
+  barsVisible=true;
+}
+function resetBarTimer(){ clearTimeout(scrollTimer); scrollTimer=setTimeout(showBars,1500); }
+function toggleBars(e){
+  // don't toggle if clicking button/link
+  if(e.target.closest('button,a,select')) return;
+  barsVisible?hideBars():showBars();
+  if(!barsVisible) resetBarTimer();
+}
+
+// ---- CHAPTER BOOKMARK ----
+function toggleChapterBookmark(){
+  chapBm=!chapBm;
+  document.getElementById('ch-bm-btn').style.color=chapBm?'#ff3e6c':'';
+}
+
+// ---- SETTINGS ----
+function openSettings(){document.getElementById('settings-panel').classList.add('open');document.getElementById('overlay').classList.add('open');}
+function closeSettings(){document.getElementById('settings-panel').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+function openTOC(){document.getElementById('toc-panel').classList.add('open');document.getElementById('toc-overlay').classList.add('open');}
+function closeTOC(){document.getElementById('toc-panel').classList.remove('open');document.getElementById('toc-overlay').classList.remove('open');}
+
+function changeFontSize(d){
+  fontSize=Math.min(24,Math.max(12,fontSize+d));
+  document.getElementById('reader').style.fontSize=fontSize+'px';
+  document.getElementById('fs-label').textContent=fontSize+'px';
+  saveSettings();
+}
+
+function setLH(v,btn){
+  document.getElementById('reader').style.lineHeight=v;
+  document.querySelectorAll('[onclick^="setLH"]').forEach(b=>b.classList.toggle('active',b===btn));
+  saveSettings();
+}
+
+function setWidth(w,btn){
+  document.getElementById('reader-container').style.maxWidth=w+'px';
+  document.querySelectorAll('[onclick^="setWidth"]').forEach(b=>b.classList.toggle('active',b===btn));
+  saveSettings();
+}
+
+function setFont(f,btn){
+  document.getElementById('reader').style.fontFamily=`'${f}',sans-serif`;
+  document.querySelectorAll('[onclick^="setFont"]').forEach(b=>b.classList.toggle('active',b===btn));
+  saveSettings();
+}
+
+function setTheme(cls,btn){
+  document.body.className=cls;
+  // sync top/bottom bar bg
+  const bg=cls==='t-light'?'rgba(240,238,234,0.97)':cls==='t-sepia'?'rgba(20,16,10,0.97)':cls==='t-amoled'?'rgba(0,0,0,0.99)':'rgba(13,13,20,0.97)';
+  document.getElementById('top-bar').style.background=bg;
+  document.getElementById('bottom-bar').style.background=bg;
+  document.querySelectorAll('.theme-tile').forEach(b=>b.classList.toggle('active',b===btn));
+  saveSettings();
+}
+
+function saveSettings(){
+  localStorage.setItem('readerSettings',JSON.stringify({fontSize,theme:document.body.className}));
+}
+function loadSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem('readerSettings'));
+    if(!s)return;
+    if(s.fontSize){fontSize=s.fontSize;document.getElementById('reader').style.fontSize=fontSize+'px';document.getElementById('fs-label').textContent=fontSize+'px';}
+    if(s.theme){document.body.className=s.theme;}
+  }catch(e){}
+}
+
+function fmtNum(n){if(n>=1000)return(n/1000).toFixed(1)+'K';return n;}
+
+// Handle OAuth redirect token
+(function(){
+  const p = new URLSearchParams(location.search);
+  const t = p.get('token');
+  if (t) {
+    localStorage.setItem('accessToken', t);
+    const url = new URL(location.href);
+    url.searchParams.delete('token');
+    history.replaceState({}, '', url.toString());
+  }
+})();
+init();lucide.createIcons();
+</script>
+</body>
+</html>

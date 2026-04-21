@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="ru" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse - Профиль</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Unbounded', 'sans-serif'],
+            body: ['Nunito Sans', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+    .bg-main { background: linear-gradient(135deg, #0d0d14 0%, #1a0a20 42%, #0d0d14 72%, #140a1a 100%); }
+    .panel { background: #1a1a2e; border: 1px solid rgba(255,255,255,0.06); }
+    .pill { background: rgba(255,62,108,0.14); color: #ff6b8a; }
+    .avatar-shell {
+      width: 112px;
+      height: 112px;
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, rgba(255,62,108,0.22), rgba(124,58,237,0.18));
+      border: 1px solid rgba(255,62,108,0.18);
+    }
+    .avatar-shell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Unbounded', sans-serif;
+      font-size: 36px;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .btn-primary { background: #ff3e6c; color: #fff; }
+    .btn-primary:hover { background: #e0355f; }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.82); border: 1px solid rgba(255,255,255,0.08); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 14px;
+    }
+    .input-field:focus {
+      border-color: rgba(255,62,108,0.45);
+      box-shadow: 0 0 0 3px rgba(255,62,108,0.08);
+    }
+    .message {
+      display: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .message.error {
+      background: rgba(255,62,108,0.1);
+      border: 1px solid rgba(255,62,108,0.18);
+      color: #ff9ab0;
+    }
+    .message.success {
+      background: rgba(34,211,238,0.1);
+      border: 1px solid rgba(34,211,238,0.18);
+      color: #67e8f9;
+    }
+    .file-picker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 56px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .file-picker-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.92);
+      color: #12121b;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .file-picker-name {
+      color: rgba(255,255,255,0.68);
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .editor-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(10px);
+    }
+    .editor-panel {
+      width: min(100%, 560px);
+      border-radius: 28px;
+      background: #171725;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    .editor-canvas-wrap {
+      padding: 24px;
+    }
+    .editor-canvas-shell {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%),
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%);
+      background-position: 0 0, 14px 14px;
+      background-size: 28px 28px;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: grab;
+      touch-action: none;
+    }
+    .editor-canvas-shell.dragging {
+      cursor: grabbing;
+    }
+    .editor-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body class="h-full bg-main font-body" style="color:#e0dfe4;">
+  <nav class="sticky top-0 z-50 w-full border-b border-white/5" style="background:rgba(13,13,20,0.92); backdrop-filter:blur(16px);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+      <a href="/index.html" class="font-heading font-extrabold text-lg tracking-tight" style="color:#ff3e6c;">NovelVerse</a>
+      <div class="flex items-center gap-2">
+        <a href="/index.html" class="btn-secondary px-3 py-1.5 rounded-lg text-sm font-semibold transition">На главную</a>
+        <button onclick="logout()" class="btn-secondary px-3 py-1.5 rounded-lg text-sm font-semibold transition">Выйти</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    <div class="grid gap-6 lg:grid-cols-[320px,1fr]">
+      <section class="panel rounded-3xl p-6">
+        <div class="avatar-shell mb-5">
+          <img id="avatar-image" alt="Аватар">
+          <div id="avatar-fallback" class="avatar-fallback">N</div>
+        </div>
+        <p class="text-xs uppercase tracking-[0.2em] text-white/35 mb-2">Профиль</p>
+        <h1 id="profile-username" class="font-heading font-bold text-2xl text-white mb-2">Загрузка...</h1>
+        <p id="profile-email" class="text-sm text-white/55 break-all mb-4">Подготавливаем данные аккаунта</p>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span id="profile-role" class="pill px-3 py-1 rounded-full text-xs font-semibold">USER</span>
+          <span id="profile-verified" class="px-3 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,211,238,0.12); color:#67e8f9;">Проверяется</span>
+        </div>
+        <div class="rounded-2xl p-4 mb-4" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);">
+          <p class="text-xs text-white/35 mb-2">Дата регистрации</p>
+          <p id="profile-created" class="text-sm text-white/85">-</p>
+        </div>
+        <form id="avatar-form" class="space-y-3 mb-4">
+          <input id="avatar-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden">
+          <label for="avatar-input" class="file-picker">
+            <span class="file-picker-button">Выберите файл</span>
+            <span id="avatar-file-name" class="file-picker-name">Файл не выбран</span>
+          </label>
+          <button id="avatar-save-btn" type="submit" class="btn-secondary w-full px-4 py-3 rounded-2xl text-sm font-semibold transition">Загрузить аватар</button>
+        </form>
+        <div id="avatar-message" class="message mb-4"></div>
+        <a id="admin-link" href="/admin.html" class="hidden btn-primary w-full text-center px-4 py-3 rounded-2xl text-sm font-semibold transition">Открыть админку</a>
+      </section>
+
+      <section class="space-y-6">
+        <div class="panel rounded-3xl overflow-hidden">
+          <div class="px-6 py-5 border-b border-white/5">
+            <h2 class="font-heading font-bold text-xl text-white">Данные аккаунта</h2>
+            <p class="text-sm text-white/45 mt-1">Здесь можно обновить имя пользователя и email.</p>
+          </div>
+
+          <div class="p-6">
+            <div id="profile-message" class="message mb-4"></div>
+            <form id="profile-form" class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label class="block text-sm text-white/50 mb-2">Имя пользователя</label>
+                <input id="username-input" type="text" class="input-field" placeholder="username">
+              </div>
+              <div>
+                <label class="block text-sm text-white/50 mb-2">Email</label>
+                <input id="email-input" type="email" class="input-field" placeholder="your@email.com">
+              </div>
+              <div class="md:col-span-2 flex flex-wrap gap-3">
+                <button id="profile-save-btn" type="submit" class="btn-primary px-5 py-3 rounded-2xl text-sm font-semibold transition">Сохранить изменения</button>
+                <button type="button" onclick="loadProfile()" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-semibold transition">Обновить данные</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="panel rounded-3xl overflow-hidden">
+          <div class="px-6 py-5 border-b border-white/5">
+            <h2 class="font-heading font-bold text-xl text-white">Смена пароля</h2>
+            <p class="text-sm text-white/45 mt-1">Задай новый пароль и подтверди его.</p>
+          </div>
+
+          <div class="p-6">
+            <div id="password-message" class="message mb-4"></div>
+            <form id="password-form" class="grid gap-4">
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="block text-sm text-white/50 mb-2">Новый пароль</label>
+                  <input id="new-password" type="password" class="input-field" placeholder="Новый пароль">
+                </div>
+                <div>
+                  <label class="block text-sm text-white/50 mb-2">Повтори новый пароль</label>
+                  <input id="confirm-password" type="password" class="input-field" placeholder="Повтори пароль">
+                </div>
+              </div>
+              <div>
+                <button id="password-save-btn" type="submit" class="btn-primary px-5 py-3 rounded-2xl text-sm font-semibold transition">Обновить пароль</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="avatar-editor" class="editor-overlay">
+    <div class="editor-panel">
+      <div class="px-6 py-5 border-b border-white/5">
+        <h3 class="font-heading font-bold text-lg text-white">Редактирование аватара</h3>
+        <p class="text-sm text-white/45 mt-1">Подгони изображение: перетаскивай его внутри рамки и меняй масштаб.</p>
+      </div>
+      <div class="editor-canvas-wrap">
+        <div id="editor-canvas-shell" class="editor-canvas-shell">
+          <canvas id="editor-canvas" width="720" height="720" class="editor-canvas"></canvas>
+        </div>
+        <div class="mt-5">
+          <label class="block text-sm text-white/50 mb-2">Масштаб</label>
+          <input id="editor-zoom" type="range" min="1" max="3" step="0.01" value="1" class="w-full accent-pink-500">
+        </div>
+      </div>
+      <div class="px-6 py-5 border-t border-white/5 flex flex-wrap gap-3 justify-end">
+        <button id="editor-cancel" type="button" class="btn-secondary px-5 py-3 rounded-2xl text-sm font-semibold transition">Отмена</button>
+        <button id="editor-apply" type="button" class="btn-primary px-5 py-3 rounded-2xl text-sm font-semibold transition">Применить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let token = localStorage.getItem('accessToken');
+    let storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    let pendingAvatarBlob = null;
+    let pendingAvatarPreviewUrl = null;
+    let editorImage = null;
+    let editorScale = 1;
+    let editorMinScale = 1;
+    let editorOffsetX = 0;
+    let editorOffsetY = 0;
+    let isDraggingEditor = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+
+    if (!token) {
+      window.location.href = '/login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login.html';
+    }
+
+    function formatRole(role) {
+      return role === 'ADMIN' ? 'Администратор' : 'Пользователь';
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return new Intl.DateTimeFormat('ru-RU', {
+        dateStyle: 'long',
+        timeStyle: 'short'
+      }).format(date);
+    }
+
+    function setMessage(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `message ${type}`;
+      el.style.display = 'block';
+    }
+
+    function clearMessage(id) {
+      const el = document.getElementById(id);
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+
+    function fillProfile(profile) {
+      document.getElementById('profile-username').textContent = profile.username || '-';
+      document.getElementById('profile-email').textContent = profile.email || '-';
+      document.getElementById('profile-role').textContent = formatRole(profile.role);
+      document.getElementById('profile-verified').textContent = profile.verified ? 'Подтверждён' : 'Не подтверждён';
+      document.getElementById('profile-verified').style.background = profile.verified
+        ? 'rgba(34,211,238,0.12)'
+        : 'rgba(255,184,0,0.12)';
+      document.getElementById('profile-verified').style.color = profile.verified ? '#67e8f9' : '#facc15';
+      document.getElementById('profile-created').textContent = formatDate(profile.createdAt);
+
+      document.getElementById('username-input').value = profile.username || '';
+      document.getElementById('email-input').value = profile.email || '';
+      updateAvatar(profile.avatarUrl, profile.username);
+
+      if (profile.role === 'ADMIN') {
+        document.getElementById('admin-link').classList.remove('hidden');
+      } else {
+        document.getElementById('admin-link').classList.add('hidden');
+      }
+    }
+
+    function updateAvatar(avatarUrl, username) {
+      const image = document.getElementById('avatar-image');
+      const fallback = document.getElementById('avatar-fallback');
+      const letter = (username || 'N').trim().charAt(0).toUpperCase() || 'N';
+      fallback.textContent = letter;
+
+      if (avatarUrl) {
+        image.src = avatarUrl;
+        image.style.display = 'block';
+        fallback.style.display = 'none';
+      } else {
+        image.removeAttribute('src');
+        image.style.display = 'none';
+        fallback.style.display = 'flex';
+      }
+    }
+
+    function revokePendingAvatarPreview() {
+      if (pendingAvatarPreviewUrl) {
+        URL.revokeObjectURL(pendingAvatarPreviewUrl);
+        pendingAvatarPreviewUrl = null;
+      }
+    }
+
+    function openAvatarEditor(image) {
+      editorImage = image;
+      const canvas = document.getElementById('editor-canvas');
+      const size = canvas.width;
+      editorMinScale = Math.max(size / image.width, size / image.height);
+      editorScale = editorMinScale;
+      editorOffsetX = (size - image.width * editorScale) / 2;
+      editorOffsetY = (size - image.height * editorScale) / 2;
+
+      const zoom = document.getElementById('editor-zoom');
+      zoom.min = String(editorMinScale.toFixed(2));
+      zoom.max = String((editorMinScale * 3).toFixed(2));
+      zoom.step = '0.01';
+      zoom.value = String(editorScale);
+
+      document.getElementById('avatar-editor').style.display = 'flex';
+      renderAvatarEditor();
+    }
+
+    function closeAvatarEditor(resetSelection = false) {
+      document.getElementById('avatar-editor').style.display = 'none';
+      document.getElementById('editor-canvas-shell').classList.remove('dragging');
+      isDraggingEditor = false;
+      editorImage = null;
+      if (resetSelection) {
+        document.getElementById('avatar-input').value = '';
+        document.getElementById('avatar-file-name').textContent = 'Файл не выбран';
+      }
+    }
+
+    function clampEditorOffsets() {
+      const canvas = document.getElementById('editor-canvas');
+      const size = canvas.width;
+      const scaledWidth = editorImage.width * editorScale;
+      const scaledHeight = editorImage.height * editorScale;
+      const minX = Math.min(0, size - scaledWidth);
+      const minY = Math.min(0, size - scaledHeight);
+      const maxX = Math.max(0, size - scaledWidth);
+      const maxY = Math.max(0, size - scaledHeight);
+
+      editorOffsetX = Math.min(maxX, Math.max(minX, editorOffsetX));
+      editorOffsetY = Math.min(maxY, Math.max(minY, editorOffsetY));
+    }
+
+    function renderAvatarEditor() {
+      if (!editorImage) return;
+      clampEditorOffsets();
+
+      const canvas = document.getElementById('editor-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#12121b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        editorImage,
+        editorOffsetX,
+        editorOffsetY,
+        editorImage.width * editorScale,
+        editorImage.height * editorScale
+      );
+    }
+
+    async function finalizeAvatarEdit() {
+      const canvas = document.getElementById('editor-canvas');
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
+      if (!blob) {
+        throw new Error('Не удалось подготовить аватар');
+      }
+
+      pendingAvatarBlob = blob;
+      revokePendingAvatarPreview();
+      pendingAvatarPreviewUrl = URL.createObjectURL(blob);
+      updateAvatar(pendingAvatarPreviewUrl, document.getElementById('username-input').value || storedUser?.username || 'N');
+      closeAvatarEditor(false);
+      setMessage('avatar-message', 'Изображение подготовлено. Теперь нажми "Загрузить аватар".', 'success');
+    }
+
+    async function api(path, options = {}) {
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {})
+      };
+
+      if (options.body) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const res = await fetch(`http://localhost:8080${path}`, {
+        ...options,
+        headers
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.message || 'Ошибка запроса');
+      }
+      return data;
+    }
+
+    async function loadProfile() {
+      clearMessage('profile-message');
+      const data = await api('/api/auth/me', { method: 'GET' });
+      storedUser = {
+        ...(storedUser || {}),
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        role: data.role,
+        avatarUrl: data.avatarUrl
+      };
+      localStorage.setItem('user', JSON.stringify(storedUser));
+      fillProfile(data);
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessage('profile-message');
+
+      const username = document.getElementById('username-input').value.trim();
+      const email = document.getElementById('email-input').value.trim();
+      if (!username || !email) {
+        setMessage('profile-message', 'Заполни имя пользователя и email.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('profile-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Сохраняем...';
+
+      try {
+        const data = await api('/api/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify({ username, email })
+        });
+
+        token = data.accessToken;
+        storedUser = data.user;
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken || '');
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        await loadProfile();
+        setMessage('profile-message', 'Профиль обновлён.', 'success');
+      } catch (error) {
+        setMessage('profile-message', error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Сохранить изменения';
+      }
+    });
+
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessage('password-message');
+
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (!newPassword || !confirmPassword) {
+        setMessage('password-message', 'Заполни новый пароль и подтверждение.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('password-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Обновляем...';
+
+      try {
+        const data = await api('/api/auth/password', {
+          method: 'PUT',
+          body: JSON.stringify({ newPassword, confirmPassword })
+        });
+        document.getElementById('password-form').reset();
+        setMessage('password-message', data.message || 'Пароль обновлён.', 'success');
+      } catch (error) {
+        setMessage('password-message', error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Обновить пароль';
+      }
+    });
+
+    document.getElementById('avatar-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessage('avatar-message');
+
+      if (!pendingAvatarBlob) {
+        setMessage('avatar-message', 'Сначала выбери картинку, отредактируй её и примени изменения.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('avatar-save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Загружаем...';
+
+      try {
+        const formData = new FormData();
+        formData.append('file', pendingAvatarBlob, 'avatar.png');
+
+        const res = await fetch('http://localhost:8080/api/auth/avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data) {
+          throw new Error(data?.message || 'Не удалось загрузить аватар');
+        }
+
+        storedUser = {
+          ...(storedUser || {}),
+          id: data.id,
+          username: data.username,
+          email: data.email,
+          role: data.role,
+          avatarUrl: data.avatarUrl
+        };
+        localStorage.setItem('user', JSON.stringify(storedUser));
+        revokePendingAvatarPreview();
+        fillProfile(data);
+        pendingAvatarBlob = null;
+        document.getElementById('avatar-input').value = '';
+        document.getElementById('avatar-file-name').textContent = 'Файл не выбран';
+        setMessage('avatar-message', 'Аватар обновлён.', 'success');
+      } catch (error) {
+        setMessage('avatar-message', error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Загрузить аватар';
+      }
+    });
+
+    document.getElementById('avatar-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      clearMessage('avatar-message');
+      document.getElementById('avatar-file-name').textContent = file ? file.name : 'Файл не выбран';
+      pendingAvatarBlob = null;
+      revokePendingAvatarPreview();
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => openAvatarEditor(image);
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('editor-zoom').addEventListener('input', (e) => {
+      if (!editorImage) return;
+      const canvas = document.getElementById('editor-canvas');
+      const size = canvas.width;
+      const previousScale = editorScale;
+      const nextScale = Number(e.target.value);
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const relativeX = (centerX - editorOffsetX) / previousScale;
+      const relativeY = (centerY - editorOffsetY) / previousScale;
+      editorScale = nextScale;
+      editorOffsetX = centerX - relativeX * editorScale;
+      editorOffsetY = centerY - relativeY * editorScale;
+      renderAvatarEditor();
+    });
+
+    document.getElementById('editor-cancel').addEventListener('click', () => closeAvatarEditor(true));
+    document.getElementById('editor-apply').addEventListener('click', async () => {
+      try {
+        await finalizeAvatarEdit();
+      } catch (error) {
+        setMessage('avatar-message', error.message, 'error');
+      }
+    });
+
+    const editorCanvasShell = document.getElementById('editor-canvas-shell');
+    editorCanvasShell.addEventListener('pointerdown', (e) => {
+      if (!editorImage) return;
+      isDraggingEditor = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      editorCanvasShell.classList.add('dragging');
+      editorCanvasShell.setPointerCapture(e.pointerId);
+    });
+
+    editorCanvasShell.addEventListener('pointermove', (e) => {
+      if (!isDraggingEditor || !editorImage) return;
+      const deltaX = e.clientX - dragStartX;
+      const deltaY = e.clientY - dragStartY;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      editorOffsetX += deltaX * 2;
+      editorOffsetY += deltaY * 2;
+      renderAvatarEditor();
+    });
+
+    function stopEditorDrag(e) {
+      if (!isDraggingEditor) return;
+      isDraggingEditor = false;
+      editorCanvasShell.classList.remove('dragging');
+      if (e?.pointerId !== undefined) {
+        editorCanvasShell.releasePointerCapture(e.pointerId);
+      }
+    }
+
+    editorCanvasShell.addEventListener('pointerup', stopEditorDrag);
+    editorCanvasShell.addEventListener('pointercancel', stopEditorDrag);
+
+    loadProfile().catch((error) => {
+      if (storedUser) {
+        fillProfile({
+          ...storedUser,
+          verified: true,
+          createdAt: null
+        });
+        setMessage('profile-message', error.message || 'Не удалось загрузить профиль с сервера.', 'error');
+        return;
+      }
+      logout();
+    });
+  </script>
+</body>
+</html>
