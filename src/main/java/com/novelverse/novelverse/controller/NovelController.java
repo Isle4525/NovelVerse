@@ -19,11 +19,16 @@ public class NovelController {
 
     @PostMapping
     public void createNovel(@RequestBody CreateNovelDTO createNovelDTO) {
-        novelService.createNovel(createNovelDTO.title,createNovelDTO.description);
+        novelService.createNovel(createNovelDTO.title, createNovelDTO.description, createNovelDTO.coverUrl);
     }
 
     @GetMapping
     public List<Novel> getAll(){
         return novelService.getAllNovels();
+    }
+
+    @GetMapping("/{id}")
+    public Novel getById(@PathVariable long id) {
+        return novelService.getNovelById(id);
     }
 }

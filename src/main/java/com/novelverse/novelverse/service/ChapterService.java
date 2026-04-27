@@ -15,10 +15,10 @@ public class ChapterService {
         this.chapterRepository = chapterRepository;
     }
 
-    public void create(Long userId, String title, String content){
+    public void create(Long novelId, String title, String content){
         Chapter chapter = new Chapter();
 
-        chapter.setNovelId(userId);
+        chapter.setNovelId(novelId);
         chapter.setTitle(title);
         chapter.setContent(content);
         chapterRepository.save(chapter);
@@ -27,5 +27,20 @@ public class ChapterService {
 
     public List<Chapter> getChapters(Long novelId){
         return chapterRepository.findByNovelId(novelId);
+    }
+
+    public Chapter getChapter(long chapterId) {
+        Chapter chapter = chapterRepository.findById(chapterId);
+        if (chapter == null) {
+            throw new RuntimeException("Chapter not found");
+        }
+        return chapter;
+    }
+
+    public void update(long chapterId, String title, String content) {
+        Chapter chapter = getChapter(chapterId);
+        chapter.setTitle(title);
+        chapter.setContent(content);
+        chapterRepository.update(chapter);
     }
 }

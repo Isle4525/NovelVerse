@@ -50,6 +50,31 @@ public class ChapterRepositoryImpl implements ChapterRepository {
     }
 
     @Override
+    public Chapter findById(long chapterId) {
+        String query = "SELECT * FROM chapter WHERE chapter_id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setLong(1, chapterId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Chapter chapter = new Chapter();
+                chapter.setId(rs.getLong("chapter_id"));
+                chapter.setNovelId(rs.getLong("novel_id"));
+                chapter.setTitle(rs.getString("title"));
+                chapter.setContent(rs.getString("content"));
+                return chapter;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
     public void save(Chapter chapter) {
         String query = "INSERT INTO chapter (novel_id, title, content) VALUES (?, ?, ?)";
 
@@ -67,5 +92,22 @@ public class ChapterRepositoryImpl implements ChapterRepository {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void update(Chapter chapter) {
+        String query = "UPDATE chapter SET title = ?, content = ? WHERE chapter_id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setString(1, chapter.getTitle());
+            stmt.setString(2, chapter.getContent());
+            stmt.setLong(3, chapter.getId());
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

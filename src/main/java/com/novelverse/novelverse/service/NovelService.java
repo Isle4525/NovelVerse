@@ -14,15 +14,21 @@ public class NovelService {
     public NovelService(NovelRepository novelRepository) {this.novelRepository = novelRepository;}
 
 
-    public void createNovel(String name, String description){
+    public void createNovel(String name, String description, String coverUrl){
         Novel novel = new Novel();
         novel.setTitle(name);
         novel.setDescription(description);
+        novel.setCoverUrl(coverUrl);
         novelRepository.save(novel);
     }
 
     public List<Novel> getAllNovels(){
         return novelRepository.findAll();
+    }
+
+    public Novel getNovelById(long id) {
+        return novelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Novel not found"));
     }
 
 }

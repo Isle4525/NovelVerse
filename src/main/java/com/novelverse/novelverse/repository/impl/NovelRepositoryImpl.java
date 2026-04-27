@@ -36,6 +36,7 @@ public class NovelRepositoryImpl implements NovelRepository {
                 novel.setId(rs.getLong("id"));
                 novel.setTitle(rs.getString("title"));
                 novel.setDescription(rs.getString("description"));
+                novel.setCoverUrl(rs.getString("cover_url"));
 
                 novels.add(novel);
 
@@ -63,6 +64,7 @@ public class NovelRepositoryImpl implements NovelRepository {
                 novel.setId(rs.getLong("id"));
                 novel.setTitle(rs.getString("title"));
                 novel.setDescription(rs.getString("description"));
+                novel.setCoverUrl(rs.getString("cover_url"));
 
                 return Optional.of(novel);
             }
@@ -77,7 +79,7 @@ public class NovelRepositoryImpl implements NovelRepository {
 
     @Override
     public void save(Novel novel) {
-        String query = "INSERT INTO novels (title, description) VALUES (?, ?)";
+        String query = "INSERT INTO novels (title, description, cover_url) VALUES (?, ?, ?)";
 
 
         try (Connection connection = dataSource.getConnection();
@@ -85,6 +87,7 @@ public class NovelRepositoryImpl implements NovelRepository {
 
             stmt.setString(1, novel.getTitle());
             stmt.setString(2, novel.getDescription());
+            stmt.setString(3, novel.getCoverUrl());
             stmt.executeUpdate();
 
         } catch (SQLException e){

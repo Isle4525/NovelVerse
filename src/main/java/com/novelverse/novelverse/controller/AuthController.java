@@ -2,6 +2,7 @@ package com.novelverse.novelverse.controller;
 
 
 import com.novelverse.novelverse.dto.novel.CreateNovelDTO;
+import com.novelverse.novelverse.domain.User;
 import com.novelverse.novelverse.dto.user.LoginDTO;
 import com.novelverse.novelverse.dto.user.RegisterDTO;
 import com.novelverse.novelverse.service.UserService;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -21,12 +24,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody RegisterDTO registerDTO) {
+    public Map<String, Object> register(@RequestBody RegisterDTO registerDTO) {
         userService.register(registerDTO.username, registerDTO.password);
+        User user = userService.login(registerDTO.username, registerDTO.password);
+        return Map.of(
+                "id", user.getId(),
+                "username", user.getName()
+        );
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody LoginDTO loginDTO) {
-        userService.login(loginDTO.username, loginDTO.password);
+    public Map<String, Object> login(@RequestBody LoginDTO loginDTO) {
+        User user = userService.login(loginDTO.username, loginDTO.password);
+        return Map.of(
+                "id", user.getId(),
+                "username", user.getName()
+        );
     }
 }

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelVerse | Управление</title>
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --panel: #181927;
+            --panel-2: #202236;
+            --text: #f4f2f8;
+            --muted: #a5a7b8;
+            --line: rgba(255,255,255,0.08);
+            --accent: #ff4d7a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(255,77,122,0.18), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(108,92,231,0.16), transparent 28%),
+                var(--bg);
+            color: var(--text);
+        }
+        .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+        .topbar {
+            position: sticky; top: 0; z-index: 10; backdrop-filter: blur(16px);
+            background: rgba(13,13,20,0.88); border-bottom: 1px solid var(--line);
+        }
+        .topbar-inner { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.34);
+            padding: 24px;
+        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 28px 0 40px; }
+        .field, textarea, select, input[type="file"] {
+            width: 100%; margin-top: 10px; border-radius: 14px; border: 1px solid var(--line);
+            background: var(--panel-2); color: var(--text); padding: 12px 14px;
+        }
+        textarea { min-height: 120px; resize: vertical; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .btn {
+            border: 1px solid transparent; border-radius: 14px; padding: 11px 15px;
+            cursor: pointer; font: inherit;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text); border-color: var(--line); }
+        .msg { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 0.95rem; }
+        .ok { background: rgba(0,200,120,0.12); color: #baf7d6; }
+        .error { background: rgba(255,87,87,0.12); color: #ffc4c4; }
+        .novel-list { display: grid; gap: 12px; margin-top: 16px; }
+        .item { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
+        .muted { color: var(--muted); }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/index.html">NovelVerse</a>
+        <div class="nav-links">
+            <a class="btn btn-secondary" href="/index.html">Каталог</a>
+            <a class="btn btn-secondary" href="/profile.html">Профиль</a>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="grid">
+        <section class="panel">
+            <h2>Создать книгу</h2>
+            <div class="muted">Работает с endpoint `POST /novels`</div>
+            <input id="novelTitle" class="field" type="text" placeholder="Название книги">
+            <input id="novelCoverUrl" class="field" type="text" placeholder="Ссылка на обложку (https://...)">
+            <textarea id="novelDescription" placeholder="Описание книги"></textarea>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="createNovel()">Создать новеллу</button>
+            </div>
+            <div id="novelMsg"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Добавить главу</h2>
+            <div class="muted">Работает с endpoint `POST /chapters`</div>
+            <select id="chapterNovelId" class="field"></select>
+            <input id="chapterTitle" class="field" type="text" placeholder="Название главы">
+            <textarea id="chapterContent" placeholder="Текст главы"></textarea>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="createChapter()">Добавить главу</button>
+            </div>
+            <div id="chapterMsg"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Изменить существующую главу</h2>
+            <div class="muted">Работает с endpoint'ами `GET /chapters/novel/{id}`, `GET /chapters/{id}` и `PUT /chapters/{id}`</div>
+            <select id="editChapterNovelId" class="field"></select>
+            <select id="editChapterId" class="field"></select>
+            <input id="editChapterTitle" class="field" type="text" placeholder="Новое название главы">
+            <textarea id="editChapterContent" placeholder="Новый текст главы"></textarea>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="loadChapterForEdit()">Загрузить главу</button>
+                <button class="btn btn-primary" onclick="updateChapter()">Сохранить изменения</button>
+            </div>
+            <div id="editChapterMsg"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Загрузить PDF</h2>
+            <div class="muted">Работает с endpoint `POST /pdf/upload` и парсит главы асинхронно</div>
+            <select id="pdfNovelId" class="field"></select>
+            <input id="pdfFile" class="field" type="file" accept=".pdf">
+            <div class="actions">
+                <button class="btn btn-primary" onclick="uploadPdf()">Загрузить PDF</button>
+            </div>
+            <div id="pdfMsg"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Новеллы в базе</h2>
+            <div class="muted">Список из `GET /novels` для быстрого контроля</div>
+            <div id="novelList" class="novel-list"></div>
+        </section>
+    </div>
+</main>
+
+<script>
+    let novels = [];
+    let editableChapters = [];
+
+    function setMessage(id, text, kind) {
+        document.getElementById(id).innerHTML = text ? '<div class="msg ' + kind + '">' + text + '</div>' : '';
+    }
+
+    async function apiJson(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) throw new Error(data?.message || 'Request failed');
+        return data;
+    }
+
+    async function loadNovels() {
+        novels = await apiJson('/novels');
+        renderNovelOptions();
+        renderNovelList();
+    }
+
+    function renderNovelOptions() {
+        const options = novels.map((novel) => `<option value="${novel.id}">#${novel.id} — ${escapeHtml(novel.title)}</option>`).join('');
+        document.getElementById('chapterNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
+        document.getElementById('editChapterNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
+        document.getElementById('pdfNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
+        if (novels.length) {
+            loadEditableChapters();
+        }
+    }
+
+    function renderNovelList() {
+        const box = document.getElementById('novelList');
+        if (!novels.length) {
+            box.innerHTML = '<div class="item muted">Пока нет книг.</div>';
+            return;
+        }
+        box.innerHTML = novels.map((novel) => `
+            <div class="item">
+                <strong>${escapeHtml(novel.title || 'Без названия')}</strong>
+                <div class="muted" style="margin-top:6px;">ID ${novel.id} · ${escapeHtml(novel.description || 'Без описания')}</div>
+            </div>
+        `).join('');
+    }
+
+    async function createNovel() {
+        const title = document.getElementById('novelTitle').value.trim();
+        const coverUrl = document.getElementById('novelCoverUrl').value.trim();
+        const description = document.getElementById('novelDescription').value.trim();
+        if (!title || !description) {
+            setMessage('novelMsg', 'Заполни название и описание.', 'error');
+            return;
+        }
+        try {
+            await apiJson('/novels', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, coverUrl })
+            });
+            document.getElementById('novelTitle').value = '';
+            document.getElementById('novelCoverUrl').value = '';
+            document.getElementById('novelDescription').value = '';
+            setMessage('novelMsg', 'Новелла создана.', 'ok');
+            await loadNovels();
+        } catch (error) {
+            setMessage('novelMsg', error.message, 'error');
+        }
+    }
+
+    async function createChapter() {
+        const novelId = Number(document.getElementById('chapterNovelId').value);
+        const title = document.getElementById('chapterTitle').value.trim();
+        const content = document.getElementById('chapterContent').value.trim();
+        if (!novelId || !title || !content) {
+            setMessage('chapterMsg', 'Выбери новеллу и заполни поля главы.', 'error');
+            return;
+        }
+        try {
+            await apiJson('/chapters', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ novelId, title, content })
+            });
+            document.getElementById('chapterTitle').value = '';
+            document.getElementById('chapterContent').value = '';
+            setMessage('chapterMsg', 'Глава добавлена.', 'ok');
+        } catch (error) {
+            setMessage('chapterMsg', error.message, 'error');
+        }
+    }
+
+    async function loadEditableChapters() {
+        const novelId = Number(document.getElementById('editChapterNovelId').value);
+        const select = document.getElementById('editChapterId');
+        if (!novelId) {
+            editableChapters = [];
+            select.innerHTML = '<option value="">Сначала выбери новеллу</option>';
+            return;
+        }
+        try {
+            editableChapters = await apiJson('/chapters/novel/' + novelId);
+            select.innerHTML = editableChapters.length
+                ? editableChapters.map((chapter) => `<option value="${chapter.id}">#${chapter.id} — ${escapeHtml(chapter.title || 'Глава')}</option>`).join('')
+                : '<option value="">У этой новеллы пока нет глав</option>';
+        } catch (error) {
+            editableChapters = [];
+            select.innerHTML = '<option value="">Не удалось загрузить главы</option>';
+            setMessage('editChapterMsg', error.message, 'error');
+        }
+    }
+
+    async function loadChapterForEdit() {
+        const chapterId = Number(document.getElementById('editChapterId').value);
+        if (!chapterId) {
+            setMessage('editChapterMsg', 'Сначала выбери главу.', 'error');
+            return;
+        }
+        try {
+            const chapter = await apiJson('/chapters/' + chapterId);
+            document.getElementById('editChapterTitle').value = chapter.title || '';
+            document.getElementById('editChapterContent').value = chapter.content || '';
+            setMessage('editChapterMsg', 'Глава загружена в форму.', 'ok');
+        } catch (error) {
+            setMessage('editChapterMsg', error.message, 'error');
+        }
+    }
+
+    async function updateChapter() {
+        const chapterId = Number(document.getElementById('editChapterId').value);
+        const title = document.getElementById('editChapterTitle').value.trim();
+        const content = document.getElementById('editChapterContent').value.trim();
+        if (!chapterId || !title || !content) {
+            setMessage('editChapterMsg', 'Выбери главу и заполни название с текстом.', 'error');
+            return;
+        }
+        try {
+            await apiJson('/chapters/' + chapterId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+            setMessage('editChapterMsg', 'Изменения главы сохранены.', 'ok');
+            await loadEditableChapters();
+        } catch (error) {
+            setMessage('editChapterMsg', error.message, 'error');
+        }
+    }
+
+    async function uploadPdf() {
+        const novelId = Number(document.getElementById('pdfNovelId').value);
+        const file = document.getElementById('pdfFile').files[0];
+        if (!novelId || !file) {
+            setMessage('pdfMsg', 'Выбери новеллу и PDF-файл.', 'error');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('novelId', novelId);
+        formData.append('file', file);
+        try {
+            const res = await fetch('/pdf/upload', { method: 'POST', body: formData });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || 'Ошибка загрузки PDF');
+            }
+            document.getElementById('pdfFile').value = '';
+            setMessage('pdfMsg', 'PDF отправлен на обработку. Главы появятся после парсинга.', 'ok');
+        } catch (error) {
+            setMessage('pdfMsg', error.message, 'error');
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    document.getElementById('editChapterNovelId').addEventListener('change', loadEditableChapters);
+
+    loadNovels().catch((error) => setMessage('novelMsg', error.message, 'error'));
+</script>
+</body>
+</html>

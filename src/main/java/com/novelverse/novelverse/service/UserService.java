@@ -27,7 +27,7 @@ public class UserService {
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(user.getPassword().equals(password)){
+        if(!user.getPassword().equals(password)){
             throw new RuntimeException("Wrong password");
         }
 

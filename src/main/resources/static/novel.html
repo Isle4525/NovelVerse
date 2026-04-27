@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelVerse | Новелла</title>
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --panel: #181927;
+            --panel-2: #202236;
+            --text: #f4f2f8;
+            --muted: #a5a7b8;
+            --line: rgba(255,255,255,0.08);
+            --accent: #ff4d7a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(255,77,122,0.18), transparent 30%),
+                radial-gradient(circle at top right, rgba(108,92,231,0.16), transparent 28%),
+                var(--bg);
+            color: var(--text);
+        }
+        .container { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(16px);
+            background: rgba(13,13,20,0.88);
+            border-bottom: 1px solid var(--line);
+        }
+        .topbar-inner {
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.3rem;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn, button, input, textarea {
+            font: inherit;
+        }
+        .btn, button, a.action-link {
+            border: 1px solid transparent;
+            border-radius: 14px;
+            padding: 11px 15px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text); border-color: var(--line); }
+        .hero {
+            padding: 44px 0 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+        }
+        .cover, .panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.34);
+        }
+        .cover {
+            min-height: 390px;
+            display: grid;
+            place-items: center;
+            font-size: 5rem;
+        }
+        .panel { padding: 24px; }
+        h1, h2, h3, p { margin-top: 0; }
+        .muted { color: var(--muted); }
+        .pill {
+            display: inline-flex;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255,77,122,0.15);
+            color: #ff9eb5;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr;
+            gap: 24px;
+            padding-bottom: 40px;
+        }
+        .stack { display: grid; gap: 18px; }
+        .chapter, .comment {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        textarea, input {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: var(--panel-2);
+            color: var(--text);
+            padding: 12px 14px;
+        }
+        .form-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .msg {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+        }
+        .ok { background: rgba(0,200,120,0.12); color: #baf7d6; }
+        .error { background: rgba(255,87,87,0.12); color: #ffc4c4; }
+        .empty {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--muted);
+            border: 1px dashed rgba(255,255,255,0.12);
+            border-radius: 18px;
+        }
+        .chapter-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .chapter-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        @media (max-width: 900px) {
+            .hero, .layout { grid-template-columns: 1fr; }
+            .cover { min-height: 220px; }
+        }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/index.html">NovelVerse</a>
+        <div class="nav-links">
+            <a class="btn btn-secondary" href="/index.html">Каталог</a>
+            <a class="btn btn-secondary" href="/profile.html">Профиль</a>
+            <a class="btn btn-secondary" href="/admin.html">Управление</a>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <div id="cover" class="cover">📖</div>
+        <div class="panel">
+            <div class="muted">Карточка новеллы</div>
+            <h1 id="title">Загрузка...</h1>
+            <div id="badges"></div>
+            <p id="description" class="muted">Секунду, подгружаем данные.</p>
+            <div class="form-actions">
+                <a id="readFirstBtn" class="action-link btn-primary" href="/read.html">Читать первую главу</a>
+                <button id="shareBtn" class="btn btn-secondary" type="button">Скопировать ссылку</button>
+            </div>
+            <div id="topMessage"></div>
+        </div>
+    </section>
+
+    <section class="layout">
+        <div class="stack">
+            <div class="panel">
+                <h2>Главы</h2>
+                <div id="chapters"></div>
+            </div>
+            <div class="panel">
+                <h2>Комментарии</h2>
+                <div id="comments"></div>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="panel">
+                <h3>Оставить комментарий</h3>
+                <p class="muted">Комментарий сохранится в таблицу `comments`. Для отправки нужен пользователь из локальной сессии.</p>
+                <textarea id="commentText" rows="6" placeholder="Напиши, что думаешь о новелле"></textarea>
+                <div class="form-actions">
+                    <button id="sendCommentBtn" class="btn btn-primary" type="button">Отправить</button>
+                </div>
+                <div id="commentMessage"></div>
+            </div>
+            <div class="panel">
+                <h3>Текущая сессия</h3>
+                <div id="sessionInfo" class="muted">Пользователь не найден.</div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const novelId = Number(params.get('id'));
+    const user = JSON.parse(localStorage.getItem('novelverse-user') || 'null');
+    let currentChapters = [];
+    let backendBookmarks = [];
+
+    function setMessage(id, text, kind) {
+        document.getElementById(id).innerHTML = text ? '<div class="msg ' + kind + '">' + text + '</div>' : '';
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function renderSession() {
+        const box = document.getElementById('sessionInfo');
+        box.textContent = user ? `Вошёл как ${user.username} (id ${user.id})` : 'Пользователь не найден. Войди через login.html.';
+    }
+
+    async function apiJson(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) {
+            throw new Error(data?.message || 'Request failed');
+        }
+        return data;
+    }
+
+    async function loadNovel() {
+        if (!novelId) {
+            document.getElementById('title').textContent = 'Некорректный id новеллы';
+            return;
+        }
+        const data = await apiJson('/novels/' + novelId);
+        document.title = 'NovelVerse | ' + data.title;
+        document.getElementById('title').textContent = data.title || 'Без названия';
+        document.getElementById('description').textContent = data.description || 'Описание пока не добавлено.';
+        document.getElementById('badges').innerHTML = `
+            <span class="pill">ID ${data.id}</span>
+            <span class="pill">Подключено к backend</span>
+        `;
+        if (data.coverUrl) {
+            document.getElementById('cover').innerHTML = `<img src="${escapeHtml(data.coverUrl)}" alt="${escapeHtml(data.title || 'Обложка')}" style="width:100%;height:100%;object-fit:cover;border-radius:26px;">`;
+        }
+    }
+
+    async function loadBookmarks() {
+        if (!user) {
+            backendBookmarks = [];
+            return;
+        }
+        try {
+            backendBookmarks = await apiJson('/bookmarks/' + user.id);
+        } catch (error) {
+            backendBookmarks = [];
+        }
+    }
+
+    function isBookmarked(chapterId) {
+        return backendBookmarks.some((bookmark) => bookmark.chapterId === chapterId);
+    }
+
+    async function toggleChapterBookmark(chapterId) {
+        if (!user) {
+            setMessage('topMessage', 'Сначала войди, чтобы работать с backend-закладками.', 'error');
+            return;
+        }
+        const exists = isBookmarked(chapterId);
+        const options = {
+            method: exists ? 'DELETE' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, chapterId })
+        };
+        try {
+            await apiJson('/bookmarks', options);
+            await loadBookmarks();
+            renderChapters();
+            setMessage('topMessage', exists ? 'Закладка удалена.' : 'Закладка добавлена.', 'ok');
+        } catch (error) {
+            setMessage('topMessage', error.message, 'error');
+        }
+    }
+
+    async function loadChapters() {
+        currentChapters = await apiJson('/chapters/novel/' + novelId);
+        renderChapters();
+        const firstChapter = currentChapters[0];
+        document.getElementById('readFirstBtn').href = firstChapter
+            ? `/read.html?id=${novelId}&chapterId=${firstChapter.id}`
+            : `/read.html?id=${novelId}`;
+    }
+
+    function renderChapters() {
+        const box = document.getElementById('chapters');
+        if (!currentChapters.length) {
+            box.innerHTML = '<div class="empty">Для этой новеллы главы пока не добавлены.</div>';
+            return;
+        }
+        box.innerHTML = currentChapters.map((chapter, index) => `
+            <div class="chapter">
+                <div class="chapter-top">
+                    <div>
+                        <strong>${escapeHtml(chapter.title || ('Глава ' + (index + 1)))}</strong>
+                        <div class="muted" style="margin-top:8px;">${escapeHtml((chapter.content || '').slice(0, 220) || 'Без текста')}</div>
+                    </div>
+                    <div class="muted">ID ${chapter.id ?? '-'}</div>
+                </div>
+                <div class="chapter-actions">
+                    <a class="action-link btn-primary" href="/read.html?id=${novelId}&chapterId=${chapter.id}">Читать</a>
+                    <button class="btn ${isBookmarked(chapter.id) ? 'btn-primary' : 'btn-secondary'}" type="button" onclick="toggleChapterBookmark(${chapter.id})">
+                        ${isBookmarked(chapter.id) ? 'Убрать из закладок' : 'В закладки'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function loadComments() {
+        const data = await apiJson('/comments/novel/' + novelId);
+        const box = document.getElementById('comments');
+        if (!data.length) {
+            box.innerHTML = '<div class="empty">Комментариев пока нет.</div>';
+            return;
+        }
+        box.innerHTML = data.map((comment) => `
+            <div class="comment">
+                <strong>Пользователь #${comment.userId}</strong>
+                <div class="muted" style="margin-top:8px;">${escapeHtml(comment.text || '')}</div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            setMessage('topMessage', 'Ссылка скопирована.', 'ok');
+        } catch (error) {
+            setMessage('topMessage', 'Не удалось скопировать ссылку.', 'error');
+        }
+    });
+
+    document.getElementById('sendCommentBtn').addEventListener('click', async () => {
+        const text = document.getElementById('commentText').value.trim();
+        if (!user) {
+            setMessage('commentMessage', 'Сначала войди через login.html.', 'error');
+            return;
+        }
+        if (!text) {
+            setMessage('commentMessage', 'Комментарий пустой.', 'error');
+            return;
+        }
+
+        try {
+            await apiJson('/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    novelId: novelId,
+                    text: text
+                })
+            });
+            document.getElementById('commentText').value = '';
+            setMessage('commentMessage', 'Комментарий сохранён.', 'ok');
+            await loadComments();
+        } catch (error) {
+            setMessage('commentMessage', error.message, 'error');
+        }
+    });
+
+    renderSession();
+
+    Promise.all([loadNovel(), loadBookmarks(), loadChapters(), loadComments()]).catch((error) => {
+        setMessage('topMessage', error.message, 'error');
+    });
+</script>
+</body>
+</html>

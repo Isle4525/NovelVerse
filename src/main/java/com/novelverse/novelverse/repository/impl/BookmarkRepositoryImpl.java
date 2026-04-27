@@ -24,7 +24,7 @@ public class BookmarkRepositoryImpl implements BookmarkRepository {
     @Override
     public void save(Bookmark bookmark) {
 
-        String query = "INSERT INTO bookmarks (novel_id, chapter_id) VALUES (?, ?)";
+        String query = "INSERT INTO bookmarks (user_id, chapter_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
 
         try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -58,13 +58,13 @@ public class BookmarkRepositoryImpl implements BookmarkRepository {
     }
 
     @Override
-    public List<Bookmark> findByUserId(Long novelId) {
+    public List<Bookmark> findByUserId(Long userId) {
         List<Bookmark> bookmarks = new ArrayList<>();
         String query = "SELECT * FROM bookmarks WHERE user_id = ?";
 
         try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setLong(1, novelId);
+            preparedStatement.setLong(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 Bookmark bookmark = new Bookmark();

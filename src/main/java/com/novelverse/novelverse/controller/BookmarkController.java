@@ -28,7 +28,7 @@ public class BookmarkController {
         bookmarkService.remove(createBookmarkDTO.userId, createBookmarkDTO.chapterId);
     }
 
-    @GetMapping
+    @GetMapping("/{userId}")
     public List<Bookmark> get(@PathVariable  Long userId){
         return bookmarkService.getUserBookmarks(userId);
     }

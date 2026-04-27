@@ -50,6 +50,7 @@ public class CommentRepositoryImpl implements CommentRepository {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 Comment comment = new Comment();
+                comment.setId(resultSet.getLong("id"));
                 comment.setNovelId(resultSet.getLong("novel_id"));
                 comment.setUserId(resultSet.getLong("user_id"));
                 comment.setText(resultSet.getString("text"));

@@ -4,6 +4,7 @@ public class Novel extends Content implements Readable{
     private Long id;
     //private String title;
     private String description;
+    private String coverUrl;
 
 
     public Long getId() {
@@ -29,5 +30,13 @@ public class Novel extends Content implements Readable{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

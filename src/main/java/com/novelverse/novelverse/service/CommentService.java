@@ -13,10 +13,10 @@ public class CommentService {
         this.commentRepository = commentRepository;
     }
 
-    public void addComment(Long userId, Long chapterId, String text) {
+    public void addComment(Long userId, Long novelId, String text) {
         Comment comment = new Comment();
         comment.setUserId(userId);
-        comment.setNovelId(chapterId);
+        comment.setNovelId(novelId);
         comment.setText(text);
 
         commentRepository.save(comment);
