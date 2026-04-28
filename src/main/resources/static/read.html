@@ -38,6 +38,14 @@
             white-space: pre-wrap;
             color: rgba(255,255,255,0.88);
         }
+        .chapter-image {
+            width: 100%;
+            max-height: 360px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin: 22px 0;
+        }
         .muted { color: var(--muted); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
     </style>
 </head>
@@ -60,14 +68,48 @@
         <div class="chapter-nav">
             <button id="prevBtn" class="btn" type="button">Предыдущая</button>
             <button id="nextBtn" class="btn" type="button">Следующая</button>
+            <button id="downloadPdfBtn" class="btn" type="button">Скачать PDF</button>
             <select id="chapterSelect"></select>
         </div>
         <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:22px 0;">
+        <div id="chapterImageBox"></div>
         <div id="chapterContent" class="content">Подгружаем текст...</div>
     </section>
 </main>
 
 <script>
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function(search, replacement) {
+            return this.split(search).join(replacement);
+        };
+    }
+    if (!window.fetch) {
+        window.fetch = function(url, options) {
+            options = options || {};
+            return new Promise(function(resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.open(options.method || 'GET', url, true);
+
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: function() { return Promise.resolve(xhr.responseText); },
+                        json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+                    });
+                };
+                xhr.onerror = function() { reject(new Error('Network request failed')); };
+                xhr.send(options.body || null);
+            });
+        };
+    }
+
     const params = new URLSearchParams(window.location.search);
     const novelId = Number(params.get('id'));
     let requestedChapterId = Number(params.get('chapterId'));
@@ -78,7 +120,7 @@
         const res = await fetch(url);
         const text = await res.text();
         const data = text ? JSON.parse(text) : null;
-        if (!res.ok) throw new Error(data?.message || 'Request failed');
+        if (!res.ok) throw new Error((data && data.message) ? data.message : 'Request failed');
         return data;
     }
 
@@ -117,6 +159,9 @@
         if (!chapter) return;
         document.getElementById('chapterTitle').textContent = chapter.title || ('Глава ' + (currentIndex + 1));
         document.getElementById('chapterMeta').textContent = `Глава ${currentIndex + 1} из ${chapters.length} · ID ${chapter.id ?? '-'}`;
+        document.getElementById('chapterImageBox').innerHTML = chapter.imageUrl
+            ? `<img class="chapter-image" src="${chapter.imageUrl}" alt="${chapter.title || 'Глава'}">`
+            : '';
         document.getElementById('chapterContent').textContent = chapter.content || 'Текст главы пока пустой.';
         document.getElementById('prevBtn').disabled = currentIndex === 0;
         document.getElementById('nextBtn').disabled = currentIndex >= chapters.length - 1;
@@ -142,6 +187,14 @@
     document.getElementById('chapterSelect').addEventListener('change', (event) => {
         currentIndex = Number(event.target.value);
         renderChapter();
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const chapter = chapters[currentIndex];
+        if (!chapter) {
+            return;
+        }
+        window.location.href = '/pdf/chapter/' + chapter.id;
     });
 
     loadData().catch((error) => {

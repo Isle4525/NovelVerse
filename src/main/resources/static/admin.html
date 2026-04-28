@@ -13,6 +13,7 @@
             --muted: #a5a7b8;
             --line: rgba(255,255,255,0.08);
             --accent: #ff4d7a;
+            --danger: #ff6b6b;
         }
         * { box-sizing: border-box; }
         body {
@@ -24,14 +25,39 @@
                 var(--bg);
             color: var(--text);
         }
-        .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+        .container { width: min(1200px, calc(100% - 32px)); margin: 0 auto; }
         .topbar {
-            position: sticky; top: 0; z-index: 10; backdrop-filter: blur(16px);
-            background: rgba(13,13,20,0.88); border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(16px);
+            background: rgba(13,13,20,0.88);
+            border-bottom: 1px solid var(--line);
         }
-        .topbar-inner { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .brand { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; }
-        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .topbar-inner {
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.3rem;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            padding: 28px 0 40px;
+        }
         .panel {
             background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
             border: 1px solid var(--line);
@@ -39,26 +65,86 @@
             box-shadow: 0 20px 48px rgba(0,0,0,0.34);
             padding: 24px;
         }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 28px 0 40px; }
         .field, textarea, select, input[type="file"] {
-            width: 100%; margin-top: 10px; border-radius: 14px; border: 1px solid var(--line);
-            background: var(--panel-2); color: var(--text); padding: 12px 14px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: var(--panel-2);
+            color: var(--text);
+            padding: 12px 14px;
+            font: inherit;
         }
-        textarea { min-height: 120px; resize: vertical; }
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
         .btn {
-            border: 1px solid transparent; border-radius: 14px; padding: 11px 15px;
-            cursor: pointer; font: inherit;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            padding: 11px 15px;
+            cursor: pointer;
+            font: inherit;
         }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text); border-color: var(--line); }
-        .msg { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 0.95rem; }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            border-color: var(--line);
+        }
+        .btn-danger {
+            background: rgba(255,107,107,0.14);
+            color: #ffd0d0;
+            border-color: rgba(255,107,107,0.35);
+        }
+        .msg {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+        }
         .ok { background: rgba(0,200,120,0.12); color: #baf7d6; }
         .error { background: rgba(255,87,87,0.12); color: #ffc4c4; }
-        .novel-list { display: grid; gap: 12px; margin-top: 16px; }
-        .item { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
+        .novel-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .item {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .item-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .cover-preview {
+            width: 56px;
+            height: 72px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+        }
         .muted { color: var(--muted); }
-        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        .wide { grid-column: 1 / -1; }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+            .wide { grid-column: auto; }
+        }
     </style>
 </head>
 <body>
@@ -68,6 +154,7 @@
         <div class="nav-links">
             <a class="btn btn-secondary" href="/index.html">Каталог</a>
             <a class="btn btn-secondary" href="/profile.html">Профиль</a>
+            <a class="btn btn-secondary" href="/novel.html">Новелла</a>
         </div>
     </div>
 </header>
@@ -81,9 +168,24 @@
             <input id="novelCoverUrl" class="field" type="text" placeholder="Ссылка на обложку (https://...)">
             <textarea id="novelDescription" placeholder="Описание книги"></textarea>
             <div class="actions">
-                <button class="btn btn-primary" onclick="createNovel()">Создать новеллу</button>
+                <button class="btn btn-primary" type="button" onclick="createNovel()">Создать новеллу</button>
             </div>
             <div id="novelMsg"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Редактировать книгу</h2>
+            <div class="muted">Работает с endpoint'ами `GET /novels/{id}`, `PUT /novels/{id}` и `DELETE /novels/{id}`</div>
+            <select id="editNovelId" class="field"></select>
+            <input id="editNovelTitle" class="field" type="text" placeholder="Новое название книги">
+            <input id="editNovelCoverUrl" class="field" type="text" placeholder="Новая ссылка на обложку">
+            <textarea id="editNovelDescription" placeholder="Новое описание книги"></textarea>
+            <div class="actions">
+                <button class="btn btn-secondary" type="button" onclick="loadNovelForEdit()">Загрузить книгу</button>
+                <button class="btn btn-primary" type="button" onclick="updateNovel()">Сохранить изменения</button>
+                <button class="btn btn-danger" type="button" onclick="deleteNovel()">Удалить книгу</button>
+            </div>
+            <div id="editNovelMsg"></div>
         </section>
 
         <section class="panel">
@@ -91,23 +193,26 @@
             <div class="muted">Работает с endpoint `POST /chapters`</div>
             <select id="chapterNovelId" class="field"></select>
             <input id="chapterTitle" class="field" type="text" placeholder="Название главы">
-            <textarea id="chapterContent" placeholder="Текст главы"></textarea>
+            <input id="chapterImageUrl" class="field" type="text" placeholder="Ссылка на картинку главы (необязательно)">
+            <textarea id="chapterContent" placeholder="Текст главы (можно оставить пустым)"></textarea>
             <div class="actions">
-                <button class="btn btn-primary" onclick="createChapter()">Добавить главу</button>
+                <button class="btn btn-primary" type="button" onclick="createChapter()">Добавить главу</button>
             </div>
             <div id="chapterMsg"></div>
         </section>
 
         <section class="panel">
-            <h2>Изменить существующую главу</h2>
-            <div class="muted">Работает с endpoint'ами `GET /chapters/novel/{id}`, `GET /chapters/{id}` и `PUT /chapters/{id}`</div>
+            <h2>Редактировать главу</h2>
+            <div class="muted">Работает с endpoint'ами `GET /chapters/novel/{id}`, `GET /chapters/{id}`, `PUT /chapters/{id}` и `DELETE /chapters/{id}`</div>
             <select id="editChapterNovelId" class="field"></select>
             <select id="editChapterId" class="field"></select>
             <input id="editChapterTitle" class="field" type="text" placeholder="Новое название главы">
-            <textarea id="editChapterContent" placeholder="Новый текст главы"></textarea>
+            <input id="editChapterImageUrl" class="field" type="text" placeholder="Новая картинка главы (https://...)">
+            <textarea id="editChapterContent" placeholder="Новый текст главы (можно оставить пустым)"></textarea>
             <div class="actions">
-                <button class="btn btn-secondary" onclick="loadChapterForEdit()">Загрузить главу</button>
-                <button class="btn btn-primary" onclick="updateChapter()">Сохранить изменения</button>
+                <button class="btn btn-secondary" type="button" onclick="loadChapterForEdit()">Загрузить главу</button>
+                <button class="btn btn-primary" type="button" onclick="updateChapter()">Сохранить изменения</button>
+                <button class="btn btn-danger" type="button" onclick="deleteChapter()">Удалить главу</button>
             </div>
             <div id="editChapterMsg"></div>
         </section>
@@ -118,20 +223,52 @@
             <select id="pdfNovelId" class="field"></select>
             <input id="pdfFile" class="field" type="file" accept=".pdf">
             <div class="actions">
-                <button class="btn btn-primary" onclick="uploadPdf()">Загрузить PDF</button>
+                <button class="btn btn-primary" type="button" onclick="uploadPdf()">Загрузить PDF</button>
             </div>
             <div id="pdfMsg"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel wide">
             <h2>Новеллы в базе</h2>
-            <div class="muted">Список из `GET /novels` для быстрого контроля</div>
+            <div class="muted">Список из `GET /novels` для быстрого контроля и перехода</div>
             <div id="novelList" class="novel-list"></div>
         </section>
     </div>
 </main>
 
 <script>
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function(search, replacement) {
+            return this.split(search).join(replacement);
+        };
+    }
+    if (!window.fetch) {
+        window.fetch = function(url, options) {
+            options = options || {};
+            return new Promise(function(resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.open(options.method || 'GET', url, true);
+
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: function() { return Promise.resolve(xhr.responseText); },
+                        json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+                    });
+                };
+                xhr.onerror = function() { reject(new Error('Network request failed')); };
+                xhr.send(options.body || null);
+            });
+        };
+    }
+
     let novels = [];
     let editableChapters = [];
 
@@ -139,11 +276,22 @@
         document.getElementById(id).innerHTML = text ? '<div class="msg ' + kind + '">' + text + '</div>' : '';
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
     async function apiJson(url, options) {
         const res = await fetch(url, options);
         const text = await res.text();
         const data = text ? JSON.parse(text) : null;
-        if (!res.ok) throw new Error(data?.message || 'Request failed');
+        if (!res.ok) {
+            throw new Error((data && data.message) ? data.message : 'Request failed');
+        }
         return data;
     }
 
@@ -153,13 +301,26 @@
         renderNovelList();
     }
 
+    function buildNovelOptions() {
+        if (!novels.length) {
+            return '<option value="">Сначала создай новеллу</option>';
+        }
+        return novels.map((novel) =>
+            `<option value="${novel.id}">#${novel.id} - ${escapeHtml(novel.title || 'Без названия')}</option>`
+        ).join('');
+    }
+
     function renderNovelOptions() {
-        const options = novels.map((novel) => `<option value="${novel.id}">#${novel.id} — ${escapeHtml(novel.title)}</option>`).join('');
-        document.getElementById('chapterNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
-        document.getElementById('editChapterNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
-        document.getElementById('pdfNovelId').innerHTML = options || '<option value="">Сначала создай новеллу</option>';
+        const options = buildNovelOptions();
+        document.getElementById('chapterNovelId').innerHTML = options;
+        document.getElementById('editNovelId').innerHTML = options;
+        document.getElementById('editChapterNovelId').innerHTML = options;
+        document.getElementById('pdfNovelId').innerHTML = options;
+
         if (novels.length) {
             loadEditableChapters();
+        } else {
+            document.getElementById('editChapterId').innerHTML = '<option value="">Сначала выбери новеллу</option>';
         }
     }
 
@@ -169,10 +330,20 @@
             box.innerHTML = '<div class="item muted">Пока нет книг.</div>';
             return;
         }
+
         box.innerHTML = novels.map((novel) => `
             <div class="item">
-                <strong>${escapeHtml(novel.title || 'Без названия')}</strong>
-                <div class="muted" style="margin-top:6px;">ID ${novel.id} · ${escapeHtml(novel.description || 'Без описания')}</div>
+                <div class="item-head">
+                    <div>
+                        <strong>${escapeHtml(novel.title || 'Без названия')}</strong>
+                        <div class="muted" style="margin-top:6px;">ID ${novel.id}</div>
+                    </div>
+                    ${novel.coverUrl ? `<img class="cover-preview" src="${escapeHtml(novel.coverUrl)}" alt="${escapeHtml(novel.title || 'Обложка')}">` : ''}
+                </div>
+                <div class="muted" style="margin-top:10px;">${escapeHtml(novel.description || 'Без описания')}</div>
+                <div class="actions">
+                    <a class="btn btn-secondary" href="/novel.html?id=${novel.id}">Открыть</a>
+                </div>
             </div>
         `).join('');
     }
@@ -181,10 +352,12 @@
         const title = document.getElementById('novelTitle').value.trim();
         const coverUrl = document.getElementById('novelCoverUrl').value.trim();
         const description = document.getElementById('novelDescription').value.trim();
-        if (!title || !description) {
-            setMessage('novelMsg', 'Заполни название и описание.', 'error');
+
+        if (!title) {
+            setMessage('novelMsg', 'Заполни хотя бы название книги.', 'error');
             return;
         }
+
         try {
             await apiJson('/novels', {
                 method: 'POST',
@@ -201,23 +374,95 @@
         }
     }
 
+    async function loadNovelForEdit() {
+        const novelId = Number(document.getElementById('editNovelId').value);
+        if (!novelId) {
+            setMessage('editNovelMsg', 'Сначала выбери книгу.', 'error');
+            return;
+        }
+
+        try {
+            const novel = await apiJson('/novels/' + novelId);
+            document.getElementById('editNovelTitle').value = novel.title || '';
+            document.getElementById('editNovelCoverUrl').value = novel.coverUrl || '';
+            document.getElementById('editNovelDescription').value = novel.description || '';
+            setMessage('editNovelMsg', 'Книга загружена в форму.', 'ok');
+        } catch (error) {
+            setMessage('editNovelMsg', error.message, 'error');
+        }
+    }
+
+    async function updateNovel() {
+        const novelId = Number(document.getElementById('editNovelId').value);
+        const title = document.getElementById('editNovelTitle').value.trim();
+        const coverUrl = document.getElementById('editNovelCoverUrl').value.trim();
+        const description = document.getElementById('editNovelDescription').value.trim();
+
+        if (!novelId || !title) {
+            setMessage('editNovelMsg', 'Выбери книгу и укажи название.', 'error');
+            return;
+        }
+
+        try {
+            await apiJson('/novels/' + novelId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, coverUrl })
+            });
+            setMessage('editNovelMsg', 'Изменения книги сохранены.', 'ok');
+            await loadNovels();
+        } catch (error) {
+            setMessage('editNovelMsg', error.message, 'error');
+        }
+    }
+
+    async function deleteNovel() {
+        const novelId = Number(document.getElementById('editNovelId').value);
+        if (!novelId) {
+            setMessage('editNovelMsg', 'Сначала выбери книгу.', 'error');
+            return;
+        }
+
+        if (!window.confirm('Удалить книгу? Вместе с ней удалятся и связанные главы.')) {
+            return;
+        }
+
+        try {
+            await apiJson('/novels/' + novelId, { method: 'DELETE' });
+            document.getElementById('editNovelTitle').value = '';
+            document.getElementById('editNovelCoverUrl').value = '';
+            document.getElementById('editNovelDescription').value = '';
+            setMessage('editNovelMsg', 'Книга удалена.', 'ok');
+            await loadNovels();
+        } catch (error) {
+            setMessage('editNovelMsg', error.message, 'error');
+        }
+    }
+
     async function createChapter() {
         const novelId = Number(document.getElementById('chapterNovelId').value);
         const title = document.getElementById('chapterTitle').value.trim();
-        const content = document.getElementById('chapterContent').value.trim();
-        if (!novelId || !title || !content) {
-            setMessage('chapterMsg', 'Выбери новеллу и заполни поля главы.', 'error');
+        const imageUrl = document.getElementById('chapterImageUrl').value.trim();
+        const content = document.getElementById('chapterContent').value;
+
+        if (!novelId || !title) {
+            setMessage('chapterMsg', 'Выбери новеллу и заполни название главы.', 'error');
             return;
         }
+
         try {
             await apiJson('/chapters', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ novelId, title, content })
+                body: JSON.stringify({ novelId, title, content, imageUrl })
             });
             document.getElementById('chapterTitle').value = '';
+            document.getElementById('chapterImageUrl').value = '';
             document.getElementById('chapterContent').value = '';
             setMessage('chapterMsg', 'Глава добавлена.', 'ok');
+            if (Number(document.getElementById('editChapterNovelId').value) === novelId) {
+                await loadEditableChapters();
+            }
         } catch (error) {
             setMessage('chapterMsg', error.message, 'error');
         }
@@ -226,15 +471,19 @@
     async function loadEditableChapters() {
         const novelId = Number(document.getElementById('editChapterNovelId').value);
         const select = document.getElementById('editChapterId');
+
         if (!novelId) {
             editableChapters = [];
             select.innerHTML = '<option value="">Сначала выбери новеллу</option>';
             return;
         }
+
         try {
             editableChapters = await apiJson('/chapters/novel/' + novelId);
             select.innerHTML = editableChapters.length
-                ? editableChapters.map((chapter) => `<option value="${chapter.id}">#${chapter.id} — ${escapeHtml(chapter.title || 'Глава')}</option>`).join('')
+                ? editableChapters.map((chapter) =>
+                    `<option value="${chapter.id}">#${chapter.id} - ${escapeHtml(chapter.title || 'Глава')}</option>`
+                ).join('')
                 : '<option value="">У этой новеллы пока нет глав</option>';
         } catch (error) {
             editableChapters = [];
@@ -249,9 +498,11 @@
             setMessage('editChapterMsg', 'Сначала выбери главу.', 'error');
             return;
         }
+
         try {
             const chapter = await apiJson('/chapters/' + chapterId);
             document.getElementById('editChapterTitle').value = chapter.title || '';
+            document.getElementById('editChapterImageUrl').value = chapter.imageUrl || '';
             document.getElementById('editChapterContent').value = chapter.content || '';
             setMessage('editChapterMsg', 'Глава загружена в форму.', 'ok');
         } catch (error) {
@@ -262,18 +513,44 @@
     async function updateChapter() {
         const chapterId = Number(document.getElementById('editChapterId').value);
         const title = document.getElementById('editChapterTitle').value.trim();
-        const content = document.getElementById('editChapterContent').value.trim();
-        if (!chapterId || !title || !content) {
-            setMessage('editChapterMsg', 'Выбери главу и заполни название с текстом.', 'error');
+        const imageUrl = document.getElementById('editChapterImageUrl').value.trim();
+        const content = document.getElementById('editChapterContent').value;
+
+        if (!chapterId || !title) {
+            setMessage('editChapterMsg', 'Выбери главу и укажи название.', 'error');
             return;
         }
+
         try {
             await apiJson('/chapters/' + chapterId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content })
+                body: JSON.stringify({ title, content, imageUrl })
             });
             setMessage('editChapterMsg', 'Изменения главы сохранены.', 'ok');
+            await loadEditableChapters();
+        } catch (error) {
+            setMessage('editChapterMsg', error.message, 'error');
+        }
+    }
+
+    async function deleteChapter() {
+        const chapterId = Number(document.getElementById('editChapterId').value);
+        if (!chapterId) {
+            setMessage('editChapterMsg', 'Сначала выбери главу.', 'error');
+            return;
+        }
+
+        if (!window.confirm('Удалить эту главу?')) {
+            return;
+        }
+
+        try {
+            await apiJson('/chapters/' + chapterId, { method: 'DELETE' });
+            document.getElementById('editChapterTitle').value = '';
+            document.getElementById('editChapterImageUrl').value = '';
+            document.getElementById('editChapterContent').value = '';
+            setMessage('editChapterMsg', 'Глава удалена.', 'ok');
             await loadEditableChapters();
         } catch (error) {
             setMessage('editChapterMsg', error.message, 'error');
@@ -283,13 +560,16 @@
     async function uploadPdf() {
         const novelId = Number(document.getElementById('pdfNovelId').value);
         const file = document.getElementById('pdfFile').files[0];
+
         if (!novelId || !file) {
             setMessage('pdfMsg', 'Выбери новеллу и PDF-файл.', 'error');
             return;
         }
+
         const formData = new FormData();
         formData.append('novelId', novelId);
         formData.append('file', file);
+
         try {
             const res = await fetch('/pdf/upload', { method: 'POST', body: formData });
             if (!res.ok) {
@@ -301,15 +581,6 @@
         } catch (error) {
             setMessage('pdfMsg', error.message, 'error');
         }
-    }
-
-    function escapeHtml(value) {
-        return String(value)
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#39;');
     }
 
     document.getElementById('editChapterNovelId').addEventListener('change', loadEditableChapters);

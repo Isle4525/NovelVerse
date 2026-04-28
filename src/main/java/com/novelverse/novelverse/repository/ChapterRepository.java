@@ -9,4 +9,5 @@ public interface ChapterRepository {
     Chapter findById(long chapterId);
     void save(Chapter chapter);
     void update(Chapter chapter);
+    void delete(long chapterId);
 }

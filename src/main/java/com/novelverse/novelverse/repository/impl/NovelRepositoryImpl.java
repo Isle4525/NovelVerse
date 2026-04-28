@@ -94,4 +94,37 @@ public class NovelRepositoryImpl implements NovelRepository {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void update(Novel novel) {
+        String query = "UPDATE novels SET title = ?, description = ?, cover_url = ? WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setString(1, novel.getTitle());
+            stmt.setString(2, novel.getDescription());
+            stmt.setString(3, novel.getCoverUrl());
+            stmt.setLong(4, novel.getId());
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void delete(long id) {
+        String query = "DELETE FROM novels WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

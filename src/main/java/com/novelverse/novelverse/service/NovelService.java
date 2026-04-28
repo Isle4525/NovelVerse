@@ -31,4 +31,16 @@ public class NovelService {
                 .orElseThrow(() -> new RuntimeException("Novel not found"));
     }
 
+    public void updateNovel(long id, String title, String description, String coverUrl) {
+        Novel novel = getNovelById(id);
+        novel.setTitle(title);
+        novel.setDescription(description);
+        novel.setCoverUrl(coverUrl);
+        novelRepository.update(novel);
+    }
+
+    public void deleteNovel(long id) {
+        getNovelById(id);
+        novelRepository.delete(id);
+    }
 }

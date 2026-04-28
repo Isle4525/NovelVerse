@@ -4,8 +4,8 @@ public class Chapter extends Content implements Readable {
 
     private Long id;
     private Long novelId;
-    //private String title;
     private String content;
+    private String imageUrl;
 
     public Long getId() {
         return id;
@@ -38,5 +38,13 @@ public class Chapter extends Content implements Readable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

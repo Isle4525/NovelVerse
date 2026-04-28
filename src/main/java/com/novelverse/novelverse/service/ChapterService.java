@@ -15,12 +15,13 @@ public class ChapterService {
         this.chapterRepository = chapterRepository;
     }
 
-    public void create(Long novelId, String title, String content){
+    public void create(Long novelId, String title, String content, String imageUrl){
         Chapter chapter = new Chapter();
 
         chapter.setNovelId(novelId);
         chapter.setTitle(title);
         chapter.setContent(content);
+        chapter.setImageUrl(imageUrl);
         chapterRepository.save(chapter);
     }
 
@@ -37,10 +38,16 @@ public class ChapterService {
         return chapter;
     }
 
-    public void update(long chapterId, String title, String content) {
+    public void update(long chapterId, String title, String content, String imageUrl) {
         Chapter chapter = getChapter(chapterId);
         chapter.setTitle(title);
         chapter.setContent(content);
+        chapter.setImageUrl(imageUrl);
         chapterRepository.update(chapter);
+    }
+
+    public void delete(long chapterId) {
+        getChapter(chapterId);
+        chapterRepository.delete(chapterId);
     }
 }

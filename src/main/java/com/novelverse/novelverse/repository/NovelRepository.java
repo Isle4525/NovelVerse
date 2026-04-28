@@ -10,4 +10,6 @@ public interface NovelRepository {
     List<Novel> findAll();
     Optional<Novel> findById(long id);
     void save(Novel novel);
+    void update(Novel novel);
+    void delete(long id);
 }

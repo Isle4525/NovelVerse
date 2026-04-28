@@ -4,4 +4,5 @@ public class CreateChapterDTO {
     public Long novelId;
     public String title;
     public String content;
+    public String imageUrl;
 }

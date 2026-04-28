@@ -8,6 +8,44 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script>
+    if (!String.prototype.replaceAll) {
+      String.prototype.replaceAll = function(search, replacement) {
+        return this.split(search).join(replacement);
+      };
+    }
+    if (!window.fetch) {
+      window.fetch = function(url, options) {
+        options = options || {};
+        return new Promise(function(resolve, reject) {
+          const xhr = new XMLHttpRequest();
+          xhr.open(options.method || 'GET', url, true);
+
+          if (options.headers) {
+            Object.keys(options.headers).forEach(function(key) {
+              xhr.setRequestHeader(key, options.headers[key]);
+            });
+          }
+
+          xhr.onload = function() {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              text: function() { return Promise.resolve(xhr.responseText); },
+              json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+            });
+          };
+          xhr.onerror = function() { reject(new Error('Network request failed')); };
+          xhr.send(options.body || null);
+        });
+      };
+    }
+    if (!window.refreshIcons) {
+      window.refreshIcons = function() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      };
+    }
     tailwind.config = {
       theme: {
         extend: {
@@ -298,7 +336,7 @@
         const grid = document.getElementById('manga-grid');
         if (grid) {
           grid.innerHTML = '<div class="col-span-full rounded-3xl border px-6 py-16 text-center" style="background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.08);"><div class="text-4xl mb-4">⚠️</div><h3 class="font-heading font-bold text-2xl mb-3" style="color:#fff;">Ошибка загрузки</h3><p class="text-sm" style="color:rgba(255,255,255,0.45);">Каталог пока не удалось загрузить с сервера.</p></div>';
-          lucide.createIcons();
+          refreshIcons();
         }
       }
     }
@@ -357,12 +395,12 @@
       const list = getMangaList();
       if (list.length === 0) {
         grid.innerHTML = '<div class="col-span-full rounded-3xl border px-6 py-16 text-center" style="background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.08);"><div class="text-4xl mb-4">📚</div><h3 class="font-heading font-bold text-2xl mb-3" style="color:#fff;">Пока нет новелл</h3><p class="text-sm" style="color:rgba(255,255,255,0.45);">Когда ты добавишь книги через backend, они появятся здесь.</p></div>';
-        lucide.createIcons();
+        refreshIcons();
         return;
       }
       grid.innerHTML = '';
       list.forEach((m, i) => grid.appendChild(createCard(m, i)));
-      lucide.createIcons();
+      refreshIcons();
     }
 
     function renderBookmarks() {
@@ -379,7 +417,7 @@
         bmData.forEach((m, i) => grid.appendChild(createCard(m, i)));
       }
       updateBookmarkBadge();
-      lucide.createIcons();
+      refreshIcons();
     }
 
     async function showDetail(id) {
@@ -450,7 +488,7 @@
       const modal = document.getElementById('detail-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      lucide.createIcons();
+      refreshIcons();
     }
 
     function closeDetail() {
@@ -516,7 +554,7 @@
         document.getElementById('search-input').value = '';
         document.getElementById('search-results').innerHTML = '';
       }
-      lucide.createIcons();
+      refreshIcons();
     }
 
     function filterManga(q) {
@@ -551,7 +589,7 @@
       const avatarFallback = document.getElementById('nav-avatar-fallback');
       const firstLetter = (user.username || '?').trim().charAt(0).toUpperCase() || '?';
       avatarFallback.textContent = firstLetter;
-      lucide.createIcons();
+      refreshIcons();
     }
 
     function logout() {
@@ -595,7 +633,7 @@
     updateBookmarkBadge();
     updateStats();
     loadNovels();
-    lucide.createIcons();
+    refreshIcons();
   </script>
 </body>
 </html>

@@ -38,6 +38,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
                 chapter.setNovelId(rs.getLong("novel_id"));
                 chapter.setTitle(rs.getString("title"));
                 chapter.setContent(rs.getString("content"));
+                chapter.setImageUrl(rs.getString("image_url"));
 
                 chapters.add(chapter);
             }
@@ -64,6 +65,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
                 chapter.setNovelId(rs.getLong("novel_id"));
                 chapter.setTitle(rs.getString("title"));
                 chapter.setContent(rs.getString("content"));
+                chapter.setImageUrl(rs.getString("image_url"));
                 return chapter;
             }
 
@@ -76,7 +78,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
 
     @Override
     public void save(Chapter chapter) {
-        String query = "INSERT INTO chapter (novel_id, title, content) VALUES (?, ?, ?)";
+        String query = "INSERT INTO chapter (novel_id, title, content, image_url) VALUES (?, ?, ?, ?)";
 
 
         try (Connection connection = dataSource.getConnection();
@@ -85,6 +87,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
             stmt.setLong(1, chapter.getNovelId());
             stmt.setString(2, chapter.getTitle());
             stmt.setString(3, chapter.getContent());
+            stmt.setString(4, chapter.getImageUrl());
             stmt.executeUpdate();
 
 
@@ -96,14 +99,30 @@ public class ChapterRepositoryImpl implements ChapterRepository {
 
     @Override
     public void update(Chapter chapter) {
-        String query = "UPDATE chapter SET title = ?, content = ? WHERE chapter_id = ?";
+        String query = "UPDATE chapter SET title = ?, content = ?, image_url = ? WHERE chapter_id = ?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
 
             stmt.setString(1, chapter.getTitle());
             stmt.setString(2, chapter.getContent());
-            stmt.setLong(3, chapter.getId());
+            stmt.setString(3, chapter.getImageUrl());
+            stmt.setLong(4, chapter.getId());
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void delete(long chapterId) {
+        String query = "DELETE FROM chapter WHERE chapter_id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setLong(1, chapterId);
             stmt.executeUpdate();
 
         } catch (SQLException e) {

@@ -1,7 +1,5 @@
 package com.novelverse.novelverse.config;
 
-import com.novelverse.novelverse.repository.BookmarkRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +10,6 @@ import java.util.concurrent.Executors;
 public class ExecutorConfig {
     @Bean
     public ExecutorService executorService(){
-        return Executors.newFixedThreadPool(4);
+        return Executors.newFixedThreadPool(8);
     }
 }

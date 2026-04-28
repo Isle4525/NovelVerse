@@ -8,6 +8,44 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script>
+    if (!String.prototype.replaceAll) {
+      String.prototype.replaceAll = function(search, replacement) {
+        return this.split(search).join(replacement);
+      };
+    }
+    if (!window.fetch) {
+      window.fetch = function(url, options) {
+        options = options || {};
+        return new Promise(function(resolve, reject) {
+          const xhr = new XMLHttpRequest();
+          xhr.open(options.method || 'GET', url, true);
+
+          if (options.headers) {
+            Object.keys(options.headers).forEach(function(key) {
+              xhr.setRequestHeader(key, options.headers[key]);
+            });
+          }
+
+          xhr.onload = function() {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              text: function() { return Promise.resolve(xhr.responseText); },
+              json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+            });
+          };
+          xhr.onerror = function() { reject(new Error('Network request failed')); };
+          xhr.send(options.body || null);
+        });
+      };
+    }
+    if (!window.refreshIcons) {
+      window.refreshIcons = function() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      };
+    }
     tailwind.config = {
       theme: { extend: { fontFamily: { heading: ['Unbounded','sans-serif'], body: ['Nunito Sans','sans-serif'] } } }
     }
@@ -168,7 +206,7 @@
   </main>
 
   <script>
-    lucide.createIcons();
+    refreshIcons();
 
     if (localStorage.getItem('novelverse-user')) {
       window.location.href = '/index.html';
@@ -179,7 +217,7 @@
       const icon = document.getElementById(iconId);
       input.type = input.type === 'password' ? 'text' : 'password';
       icon.setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
-      lucide.createIcons();
+      refreshIcons();
     }
 
     function checkStrength(val) {

@@ -67,6 +67,38 @@
 </main>
 
 <script>
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function(search, replacement) {
+            return this.split(search).join(replacement);
+        };
+    }
+    if (!window.fetch) {
+        window.fetch = function(url, options) {
+            options = options || {};
+            return new Promise(function(resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.open(options.method || 'GET', url, true);
+
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: function() { return Promise.resolve(xhr.responseText); },
+                        json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+                    });
+                };
+                xhr.onerror = function() { reject(new Error('Network request failed')); };
+                xhr.send(options.body || null);
+            });
+        };
+    }
+
     const user = JSON.parse(localStorage.getItem('novelverse-user') || 'null');
 
     function setMessage(id, text, kind) {
@@ -82,7 +114,7 @@
         const res = await fetch(url, options);
         const text = await res.text();
         const data = text ? JSON.parse(text) : null;
-        if (!res.ok) throw new Error(data?.message || 'Request failed');
+        if (!res.ok) throw new Error((data && data.message) ? data.message : 'Request failed');
         return data;
     }
 
