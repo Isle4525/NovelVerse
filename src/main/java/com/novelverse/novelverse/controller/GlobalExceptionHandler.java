@@ -13,6 +13,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleRuntimeException(RuntimeException exception) {
-        return Map.of("message", exception.getMessage());
+        String message = exception.getMessage();
+        return Map.of("message", message != null ? message : "Bad Request");
     }
 }

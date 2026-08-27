@@ -45,15 +45,12 @@ public class PdfService {
     }
 
     private void parse(File file, Long novelId) {
-        try {
-            PDDocument document = PDDocument.load(file);
+        try (PDDocument document = PDDocument.load(file)) {
             PDFTextStripper stripper = new PDFTextStripper();
-
             String text = stripper.getText(document);
-            document.close();
 
-            String[] chapters = text.split("Р“Р»Р°РІР° \\d+");
-            int index = 0;
+            String[] chapters = text.split("(?i)(?:Глава|Chapter)\\s+\\d+");
+            int index = 1;
 
             for (String chText : chapters) {
                 if (chText.isBlank()) {
@@ -62,7 +59,7 @@ public class PdfService {
 
                 Chapter chapter = new Chapter();
                 chapter.setNovelId(novelId);
-                chapter.setTitle("Р“Р»Р°РІР° " + index++);
+                chapter.setTitle("Глава " + index++);
                 chapter.setContent(chText.trim());
 
                 chapterRepository.save(chapter);
@@ -184,13 +181,33 @@ public class PdfService {
         return safeText(value, "").replace("\t", "    ");
     }
 
-    private PDFont loadPdfFont(PDDocument document) throws IOException {
-        File windowsFont = new File("C:/Windows/Fonts/arial.ttf");
-        if (windowsFont.exists()) {
-            return PDType0Font.load(document, windowsFont);
+    private PDFont loadPdfFont(PDDocument document) {
+        String[] candidatePaths = {
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/calibri.ttf",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/TTF/DejaVuSans.ttf",
+            "/usr/share/fonts/adwaita-sans-fonts/AdwaitaSans-Regular.ttf",
+            "/usr/share/fonts/cantarell-fonts/Cantarell-Regular.otf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/Library/Fonts/Arial.ttf"
+        };
+
+        for (String path : candidatePaths) {
+            File fontFile = new File(path);
+            if (fontFile.exists() && fontFile.canRead()) {
+                try {
+                    return PDType0Font.load(document, fontFile);
+                } catch (Exception ignored) {
+                }
+            }
         }
 
-        throw new IOException("Arial font not found for PDF export");
+        return org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA;
     }
 
     private float estimateTextWidth(String text, float fontSize) {

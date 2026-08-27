@@ -2,7 +2,6 @@ package com.novelverse.novelverse.controller;
 
 import com.novelverse.novelverse.domain.Comment;
 import com.novelverse.novelverse.dto.comment.CreateCommentDTO;
-import com.novelverse.novelverse.repository.CommentRepository;
 import com.novelverse.novelverse.service.CommentService;
 import org.springframework.web.bind.annotation.*;
 

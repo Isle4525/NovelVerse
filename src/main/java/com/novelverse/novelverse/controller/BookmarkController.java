@@ -2,7 +2,6 @@ package com.novelverse.novelverse.controller;
 
 import com.novelverse.novelverse.domain.Bookmark;
 import com.novelverse.novelverse.dto.bookmark.CreateBookmarkDTO;
-import com.novelverse.novelverse.repository.BookmarkRepository;
 import com.novelverse.novelverse.service.BookmarkService;
 import org.springframework.web.bind.annotation.*;
 

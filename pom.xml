@@ -11,8 +11,8 @@
 	<groupId>com.novelverse</groupId>
 	<artifactId>novelverse</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>NovelVerse</name>
+	<description>Web and Desktop Platform for Reading, Managing, and Discussing Web Novels</description>
 	<url/>
 	<licenses>
 		<license/>

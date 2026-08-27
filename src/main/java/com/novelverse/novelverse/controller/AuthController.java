@@ -1,7 +1,6 @@
 package com.novelverse.novelverse.controller;
 
 
-import com.novelverse.novelverse.dto.novel.CreateNovelDTO;
 import com.novelverse.novelverse.domain.User;
 import com.novelverse.novelverse.dto.user.LoginDTO;
 import com.novelverse.novelverse.dto.user.RegisterDTO;

@@ -2,16 +2,15 @@
 
 ## Quick start
 
-Double-click:
+- **Windows**: Double-click `launch-desktop.bat`
+- **Linux / macOS**: Run `./launch-desktop.sh` (or `./mvnw javafx:run`)
 
-- `launch-desktop.bat`
+This starts a single standalone desktop application that:
 
-This starts one desktop application that:
-
-- launches Spring Boot backend on `8080`
-- launches socket chat on `9090`
-- opens the website inside JavaFX `WebView`
-- opens native chat in a separate desktop tab
+- launches the embedded Spring Boot backend on port `8080`
+- starts the raw Socket chat server on port `9090`
+- embeds and displays the full web UI inside a JavaFX `WebView`
+- provides a native, low-latency Socket Chat client in a dedicated desktop tab
 
 ## Demo build
 
