@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ru" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovelVerse | Регистрация</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    if (!String.prototype.replaceAll) {
+      String.prototype.replaceAll = function(search, replacement) {
+        return this.split(search).join(replacement);
+      };
+    }
+    if (!window.fetch) {
+      window.fetch = function(url, options) {
+        options = options || {};
+        return new Promise(function(resolve, reject) {
+          const xhr = new XMLHttpRequest();
+          xhr.open(options.method || 'GET', url, true);
+
+          if (options.headers) {
+            Object.keys(options.headers).forEach(function(key) {
+              xhr.setRequestHeader(key, options.headers[key]);
+            });
+          }
+
+          xhr.onload = function() {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              text: function() { return Promise.resolve(xhr.responseText); },
+              json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+            });
+          };
+          xhr.onerror = function() { reject(new Error('Network request failed')); };
+          xhr.send(options.body || null);
+        });
+      };
+    }
+    if (!window.refreshIcons) {
+      window.refreshIcons = function() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      };
+    }
+    tailwind.config = {
+      theme: { extend: { fontFamily: { heading: ['Unbounded','sans-serif'], body: ['Nunito Sans','sans-serif'] } } }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; }
+    .input-field {
+      width: 100%; padding: 14px 16px; border-radius: 10px; font-size: 14px;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .input-field:focus {
+      border-color: rgba(255,62,108,0.5);
+      box-shadow: 0 0 0 3px rgba(255,62,108,0.1);
+    }
+    .input-field::placeholder { color: rgba(255,255,255,0.25); }
+    .btn-primary {
+      width: 100%; padding: 14px; border-radius: 10px; font-weight: 700;
+      font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+      background: #ff3e6c; color: #fff; border: none;
+    }
+    .btn-primary:hover { background: #e0355f; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .card {
+      background: #1a1a2e;
+      border: 1px solid rgba(255,62,108,0.15);
+      border-radius: 20px;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.5s ease forwards; }
+    .orb1 {
+      position: fixed; width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,62,108,0.12) 0%, transparent 70%);
+      top: -100px; left: -100px; pointer-events: none;
+    }
+    .orb2 {
+      position: fixed; width: 350px; height: 350px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+      bottom: -80px; right: -80px; pointer-events: none;
+    }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+    .strength-bar { height: 3px; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+    .error-msg, .success-msg {
+      display: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;
+    }
+    .error-msg {
+      background: rgba(255,62,108,0.1); border: 1px solid rgba(255,62,108,0.25);
+      color: #ff6b8a;
+    }
+    .success-msg {
+      background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25);
+      color: #22d3ee;
+    }
+    .password-hint { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+    .checkbox-wrap {
+      display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+    }
+    .checkbox-wrap input[type="checkbox"] { accent-color: #ff3e6c; margin-top: 2px; width: 15px; height: 15px; flex-shrink: 0; }
+  </style>
+</head>
+<body class="h-full font-body" style="background:#0d0d14; color:#e0dfe4;">
+  <div class="orb1"></div>
+  <div class="orb2"></div>
+
+  <nav class="sticky top-0 z-50 w-full border-b border-white/5" style="background:rgba(13,13,20,0.92); backdrop-filter:blur(16px);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+      <a href="/index.html" class="font-heading font-extrabold text-lg tracking-tight" style="color:#ff3e6c;">NovelVerse</a>
+      <div class="flex items-center gap-3 text-sm text-white/50">
+        Уже есть аккаунт?
+        <a href="/login.html" class="font-semibold transition" style="color:#ff3e6c;">Войти</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex items-center justify-center min-h-[calc(100vh-56px)] px-4 py-12">
+    <div class="w-full max-w-md fade-up">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background:rgba(255,62,108,0.1); border:1px solid rgba(255,62,108,0.2);">
+          <i data-lucide="user-plus" style="width:28px;height:28px;color:#ff3e6c;"></i>
+        </div>
+        <h1 class="font-heading font-extrabold text-2xl mb-2" style="color:#fff;">Создать аккаунт</h1>
+        <p style="color:rgba(255,255,255,0.45); font-size:14px;">Эта страница работает с существующим endpoint `/auth/register`</p>
+      </div>
+
+      <div class="card p-8">
+        <div id="error-reg" class="error-msg"></div>
+        <div id="success-reg" class="success-msg"></div>
+
+        <form id="register-form" novalidate>
+          <div class="mb-4">
+            <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,0.5);">Username</label>
+            <div class="relative">
+              <input id="username" type="text" class="input-field" placeholder="YourNickname" autocomplete="username" style="padding-right:44px;">
+              <i data-lucide="at-sign" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:rgba(255,255,255,0.2);pointer-events:none;"></i>
+            </div>
+            <p class="password-hint">Используется только `username` и `password`</p>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,0.5);">Пароль</label>
+            <div class="relative">
+              <input id="password" type="password" class="input-field" placeholder="••••••••" autocomplete="new-password" style="padding-right:44px;" oninput="checkStrength(this.value)">
+              <button type="button" onclick="togglePassword('password','eye1')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;padding:0;">
+                <i id="eye1" data-lucide="eye" style="width:16px;height:16px;"></i>
+              </button>
+            </div>
+            <div class="flex gap-1 mt-2">
+              <div id="s1" class="strength-bar flex-1" style="background:rgba(255,255,255,0.08);"></div>
+              <div id="s2" class="strength-bar flex-1" style="background:rgba(255,255,255,0.08);"></div>
+              <div id="s3" class="strength-bar flex-1" style="background:rgba(255,255,255,0.08);"></div>
+              <div id="s4" class="strength-bar flex-1" style="background:rgba(255,255,255,0.08);"></div>
+            </div>
+            <p id="strength-label" class="password-hint mt-1">Минимум 6 символов</p>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,0.5);">Подтверждение пароля</label>
+            <div class="relative">
+              <input id="confirmPassword" type="password" class="input-field" placeholder="••••••••" autocomplete="new-password" style="padding-right:44px;">
+              <button type="button" onclick="togglePassword('confirmPassword','eye2')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;padding:0;">
+                <i id="eye2" data-lucide="eye" style="width:16px;height:16px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <label class="checkbox-wrap mb-6">
+            <input type="checkbox" id="terms">
+            <span style="font-size:13px; color:rgba(255,255,255,0.5); line-height:1.5;">
+              Я принимаю условия использования этого демо-проекта
+            </span>
+          </label>
+
+          <button type="submit" class="btn-primary" id="submit-btn">Создать аккаунт</button>
+        </form>
+
+        <div class="divider"><span style="font-size:12px;color:rgba(255,255,255,0.2);">или</span></div>
+        <p class="text-center text-sm" style="color:rgba(255,255,255,0.4);">
+          Уже есть аккаунт?
+          <a href="/login.html" class="font-semibold transition" style="color:#ff3e6c;">Войти</a>
+        </p>
+      </div>
+
+      <div class="text-center mt-6">
+        <a href="/index.html" class="inline-flex items-center gap-2 text-sm transition" style="color:rgba(255,255,255,0.3);">
+          <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+          Вернуться на главную
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    refreshIcons();
+
+    if (localStorage.getItem('novelverse-user')) {
+      window.location.href = '/index.html';
+    }
+
+    function togglePassword(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      icon.setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
+      refreshIcons();
+    }
+
+    function checkStrength(val) {
+      const bars = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+      const label = document.getElementById('strength-label');
+      const colors = ['#ff3e6c','#ff8c42','#f5c518','#22d3ee'];
+      const labels = ['Слабый','Средний','Хороший','Отличный'];
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val) || /[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      bars.forEach((b, i) => {
+        b.style.background = i < score ? colors[Math.max(score - 1, 0)] : 'rgba(255,255,255,0.08)';
+      });
+      label.textContent = val.length === 0 ? 'Минимум 6 символов' : (score > 0 ? labels[score - 1] : 'Слишком короткий');
+      label.style.color = val.length === 0 ? 'rgba(255,255,255,0.3)' : colors[Math.max(score - 1, 0)];
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-reg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('success-reg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('success-reg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('error-reg').style.display = 'none';
+    }
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('error-reg').style.display = 'none';
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const terms = document.getElementById('terms').checked;
+
+      if (!username || !password || !confirmPassword) {
+        showError('Пожалуйста, заполните все поля');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showError('Пароли не совпадают');
+        return;
+      }
+      if (!terms) {
+        showError('Необходимо принять условия использования');
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.textContent = 'Создаём аккаунт...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('novelverse-user', JSON.stringify(data));
+          showSuccess('Аккаунт создан. Перенаправляем...');
+          setTimeout(() => window.location.href = '/index.html', 900);
+        } else {
+          showError(data.message || 'Ошибка регистрации');
+        }
+      } catch (err) {
+        showError('Сервер недоступен. Убедись, что backend запущен.');
+      } finally {
+        btn.textContent = 'Создать аккаунт';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

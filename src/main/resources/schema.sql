@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS novels (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    cover_url TEXT
+);
+
+ALTER TABLE novels ADD COLUMN IF NOT EXISTS cover_url TEXT;
+
+CREATE TABLE IF NOT EXISTS chapter (
+    chapter_id BIGSERIAL PRIMARY KEY,
+    novel_id BIGINT NOT NULL REFERENCES novels(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    image_url TEXT
+);
+
+ALTER TABLE chapter ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+CREATE TABLE IF NOT EXISTS comments (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    novel_id BIGINT NOT NULL REFERENCES novels(id) ON DELETE CASCADE,
+    text TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    chapter_id BIGINT NOT NULL REFERENCES chapter(chapter_id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, chapter_id)
+);

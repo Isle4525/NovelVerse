@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelVerse | Профиль</title>
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --panel: #181927;
+            --panel-2: #202236;
+            --text: #f4f2f8;
+            --muted: #a5a7b8;
+            --line: rgba(255,255,255,0.08);
+            --accent: #ff4d7a;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); }
+        .container { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+        .topbar { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(16px); background: rgba(13,13,20,0.88); border-bottom: 1px solid var(--line); }
+        .topbar-inner { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { border: 1px solid transparent; border-radius: 14px; padding: 11px 15px; cursor: pointer; font: inherit; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text); border-color: var(--line); text-decoration: none; display: inline-flex; align-items: center; }
+        .panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.34);
+            padding: 24px;
+            margin: 28px 0;
+        }
+        .bookmark { padding: 16px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); margin-top: 12px; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .msg { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 0.95rem; }
+        .ok { background: rgba(0,200,120,0.12); color: #baf7d6; }
+        .error { background: rgba(255,87,87,0.12); color: #ffc4c4; }
+        .muted { color: var(--muted); }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/index.html">NovelVerse</a>
+        <div class="nav-links">
+            <a class="btn btn-secondary" href="/index.html">Каталог</a>
+            <a class="btn btn-secondary" href="/admin.html">Управление</a>
+            <button class="btn btn-primary" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="panel">
+        <h1>Профиль пользователя</h1>
+        <div id="sessionInfo" class="muted"></div>
+        <div id="profileMsg"></div>
+    </section>
+
+    <section class="panel">
+        <h2>Backend-закладки</h2>
+        <div class="muted">Список строится по endpoint'ам `/bookmarks/{userId}` и `/chapters/novel/{id}`.</div>
+        <div id="bookmarkList"></div>
+    </section>
+</main>
+
+<script>
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function(search, replacement) {
+            return this.split(search).join(replacement);
+        };
+    }
+    if (!window.fetch) {
+        window.fetch = function(url, options) {
+            options = options || {};
+            return new Promise(function(resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.open(options.method || 'GET', url, true);
+
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: function() { return Promise.resolve(xhr.responseText); },
+                        json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+                    });
+                };
+                xhr.onerror = function() { reject(new Error('Network request failed')); };
+                xhr.send(options.body || null);
+            });
+        };
+    }
+
+    const user = JSON.parse(localStorage.getItem('novelverse-user') || 'null');
+
+    function setMessage(id, text, kind) {
+        document.getElementById(id).innerHTML = text ? '<div class="msg ' + kind + '">' + text + '</div>' : '';
+    }
+
+    function logout() {
+        localStorage.removeItem('novelverse-user');
+        window.location.href = '/index.html';
+    }
+
+    async function apiJson(url, options) {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) throw new Error((data && data.message) ? data.message : 'Request failed');
+        return data;
+    }
+
+    function renderSession() {
+        const box = document.getElementById('sessionInfo');
+        if (!user) {
+            box.textContent = 'Пользователь не найден. Сначала войди через login.html.';
+            return false;
+        }
+        box.textContent = `Вошёл как ${user.username} (id ${user.id})`;
+        return true;
+    }
+
+    async function loadBookmarks() {
+        if (!renderSession()) return;
+        try {
+            const bookmarks = await apiJson('/bookmarks/' + user.id);
+            const novels = await apiJson('/novels');
+            const chaptersPerNovel = await Promise.all(
+                novels.map(async (novel) => ({
+                    novel,
+                    chapters: await apiJson('/chapters/novel/' + novel.id).catch(() => [])
+                }))
+            );
+
+            const chapterIndex = new Map();
+            chaptersPerNovel.forEach(({ novel, chapters }) => {
+                chapters.forEach((chapter) => {
+                    chapterIndex.set(chapter.id, { chapter, novel });
+                });
+            });
+
+            const box = document.getElementById('bookmarkList');
+            if (!bookmarks.length) {
+                box.innerHTML = '<div class="bookmark muted">Закладок пока нет.</div>';
+                return;
+            }
+
+            box.innerHTML = bookmarks.map((bookmark) => {
+                const item = chapterIndex.get(bookmark.chapterId);
+                if (!item) {
+                    return `
+                        <div class="bookmark">
+                            <strong>Глава #${bookmark.chapterId}</strong>
+                            <div class="muted" style="margin-top:6px;">Данные главы пока не удалось сопоставить.</div>
+                            <div class="actions">
+                                <button class="btn btn-secondary" onclick="removeBookmark(${bookmark.chapterId})">Удалить</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="bookmark">
+                        <strong>${escapeHtml(item.chapter.title || 'Глава')}</strong>
+                        <div class="muted" style="margin-top:6px;">Новелла: ${escapeHtml(item.novel.title || 'Без названия')}</div>
+                        <div class="muted" style="margin-top:6px;">${escapeHtml((item.chapter.content || '').slice(0, 180) || 'Без текста')}</div>
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="/read.html?id=${item.novel.id}&chapterId=${item.chapter.id}">Читать</a>
+                            <button class="btn btn-secondary" onclick="removeBookmark(${bookmark.chapterId})">Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            setMessage('profileMsg', error.message, 'error');
+        }
+    }
+
+    async function removeBookmark(chapterId) {
+        try {
+            await apiJson('/bookmarks', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, chapterId })
+            });
+            setMessage('profileMsg', 'Закладка удалена.', 'ok');
+            await loadBookmarks();
+        } catch (error) {
+            setMessage('profileMsg', error.message, 'error');
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    loadBookmarks();
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelVerse | Чтение</title>
+    <style>
+        :root {
+            --bg: #0d0d14;
+            --panel: #181927;
+            --text: #f4f2f8;
+            --muted: #a5a7b8;
+            --line: rgba(255,255,255,0.08);
+            --accent: #ff4d7a;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: var(--bg); color: var(--text); }
+        .container { width: min(980px, calc(100% - 32px)); margin: 0 auto; }
+        .topbar { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(16px); background: rgba(13,13,20,0.88); border-bottom: 1px solid var(--line); }
+        .topbar-inner { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .brand { color: var(--accent); font-weight: 800; font-size: 1.3rem; text-decoration: none; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+        .panel {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.34);
+            padding: 28px;
+            margin: 28px 0 40px;
+        }
+        .chapter-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .btn, select {
+            border: 1px solid var(--line); border-radius: 14px; padding: 11px 15px; font: inherit;
+            background: rgba(255,255,255,0.04); color: var(--text);
+        }
+        .content {
+            line-height: 1.9;
+            font-size: 1.08rem;
+            white-space: pre-wrap;
+            color: rgba(255,255,255,0.88);
+        }
+        .chapter-image {
+            width: 100%;
+            max-height: 360px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin: 22px 0;
+        }
+        .muted { color: var(--muted); font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/index.html">NovelVerse</a>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;">
+            <a class="btn" href="/index.html" style="text-decoration:none;">Каталог</a>
+            <a id="backNovel" class="btn" href="/novel.html" style="text-decoration:none;">К странице новеллы</a>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="panel">
+        <div class="muted">Режим чтения</div>
+        <h1 id="chapterTitle" style="font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;">Загрузка...</h1>
+        <div id="chapterMeta" class="muted"></div>
+        <div class="chapter-nav">
+            <button id="prevBtn" class="btn" type="button">Предыдущая</button>
+            <button id="nextBtn" class="btn" type="button">Следующая</button>
+            <button id="downloadPdfBtn" class="btn" type="button">Скачать PDF</button>
+            <select id="chapterSelect"></select>
+        </div>
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:22px 0;">
+        <div id="chapterImageBox"></div>
+        <div id="chapterContent" class="content">Подгружаем текст...</div>
+    </section>
+</main>
+
+<script>
+    if (!String.prototype.replaceAll) {
+        String.prototype.replaceAll = function(search, replacement) {
+            return this.split(search).join(replacement);
+        };
+    }
+    if (!window.fetch) {
+        window.fetch = function(url, options) {
+            options = options || {};
+            return new Promise(function(resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.open(options.method || 'GET', url, true);
+
+                if (options.headers) {
+                    Object.keys(options.headers).forEach(function(key) {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+
+                xhr.onload = function() {
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        text: function() { return Promise.resolve(xhr.responseText); },
+                        json: function() { return Promise.resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null); }
+                    });
+                };
+                xhr.onerror = function() { reject(new Error('Network request failed')); };
+                xhr.send(options.body || null);
+            });
+        };
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const novelId = Number(params.get('id'));
+    let requestedChapterId = Number(params.get('chapterId'));
+    let chapters = [];
+    let currentIndex = 0;
+
+    async function apiJson(url) {
+        const res = await fetch(url);
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) throw new Error((data && data.message) ? data.message : 'Request failed');
+        return data;
+    }
+
+    async function loadData() {
+        const [novel, chapterList] = await Promise.all([
+            apiJson('/novels/' + novelId),
+            apiJson('/chapters/novel/' + novelId)
+        ]);
+        chapters = chapterList || [];
+        document.title = 'NovelVerse | ' + (novel.title || 'Чтение');
+        document.getElementById('backNovel').href = '/novel.html?id=' + novelId;
+        if (!chapters.length) {
+            document.getElementById('chapterTitle').textContent = novel.title || 'Новелла';
+            document.getElementById('chapterMeta').textContent = 'Главы пока не добавлены.';
+            document.getElementById('chapterContent').textContent = 'Для этой новеллы пока нет доступных глав.';
+            return;
+        }
+        currentIndex = requestedChapterId
+            ? Math.max(0, chapters.findIndex((chapter) => chapter.id === requestedChapterId))
+            : 0;
+        if (currentIndex < 0) currentIndex = 0;
+        renderChapter();
+        renderSelect();
+    }
+
+    function renderSelect() {
+        const select = document.getElementById('chapterSelect');
+        select.innerHTML = chapters.map((chapter, index) => `
+            <option value="${index}">${chapter.title || ('Глава ' + (index + 1))}</option>
+        `).join('');
+        select.value = String(currentIndex);
+    }
+
+    function renderChapter() {
+        const chapter = chapters[currentIndex];
+        if (!chapter) return;
+        document.getElementById('chapterTitle').textContent = chapter.title || ('Глава ' + (currentIndex + 1));
+        document.getElementById('chapterMeta').textContent = `Глава ${currentIndex + 1} из ${chapters.length} · ID ${chapter.id ?? '-'}`;
+        document.getElementById('chapterImageBox').innerHTML = chapter.imageUrl
+            ? `<img class="chapter-image" src="${chapter.imageUrl}" alt="${chapter.title || 'Глава'}">`
+            : '';
+        document.getElementById('chapterContent').textContent = chapter.content || 'Текст главы пока пустой.';
+        document.getElementById('prevBtn').disabled = currentIndex === 0;
+        document.getElementById('nextBtn').disabled = currentIndex >= chapters.length - 1;
+        history.replaceState(null, '', `/read.html?id=${novelId}&chapterId=${chapter.id}`);
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderChapter();
+            renderSelect();
+        }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentIndex < chapters.length - 1) {
+            currentIndex++;
+            renderChapter();
+            renderSelect();
+        }
+    });
+
+    document.getElementById('chapterSelect').addEventListener('change', (event) => {
+        currentIndex = Number(event.target.value);
+        renderChapter();
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const chapter = chapters[currentIndex];
+        if (!chapter) {
+            return;
+        }
+        window.location.href = '/pdf/chapter/' + chapter.id;
+    });
+
+    loadData().catch((error) => {
+        document.getElementById('chapterTitle').textContent = 'Ошибка';
+        document.getElementById('chapterMeta').textContent = '';
+        document.getElementById('chapterContent').textContent = error.message;
+    });
+</script>
+</body>
+</html>
